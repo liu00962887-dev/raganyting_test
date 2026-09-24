@@ -1,0 +1,1347 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>本体与知识图谱</title>
+<meta name="description" content="一堂可互动的动画讲解：本体与知识图谱的区别、历史沿革，以及 Agent 时代企业为什么需要本体平台。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap">
+<style>
+:root{
+  --bg:#E8EDEB; --paper:#F6F8F7; --stage:#FBFCFB; --card:#FFFFFF;
+  --ink:#12233A; --ink-2:#33465B; --muted:#5B6C7B; --line:#C8D2D0; --line-2:#DFE6E4; --grid:rgba(18,35,58,.055);
+  --onto:#0D706E; --onto-soft:#D4ECE8; --onto-ink:#0B5F5D;
+  --kg:#C9731B; --kg-soft:#FAE7D0; --kg-ink:#9B5510;
+  --agent:#2C52C4; --agent-soft:#DDE5FA;
+  --bad:#BF3A30; --bad-soft:#F8DCD8; --ok:#1E7A4C; --ok-soft:#D7EEE1;
+  --shadow:0 1px 2px rgba(18,35,58,.06),0 12px 32px -14px rgba(18,35,58,.22);
+  --f-display:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --f-body:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1118; --paper:#101A24; --stage:#0D161F; --card:#15212D;
+    --ink:#E2EAEE; --ink-2:#BCC9D2; --muted:#8798A7; --line:#283A4C; --line-2:#1C2A38; --grid:rgba(226,234,238,.045);
+    --onto:#3DBAB4; --onto-soft:#11332F; --onto-ink:#6FD3CD;
+    --kg:#EE9D45; --kg-soft:#382712; --kg-ink:#F4B46C;
+    --agent:#8AA5FF; --agent-soft:#1A2548;
+    --bad:#F0776B; --bad-soft:#3B1C1A; --ok:#5AC98F; --ok-soft:#12301F;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1118; --paper:#101A24; --stage:#0D161F; --card:#15212D;
+  --ink:#E2EAEE; --ink-2:#BCC9D2; --muted:#8798A7; --line:#283A4C; --line-2:#1C2A38; --grid:rgba(226,234,238,.045);
+  --onto:#3DBAB4; --onto-soft:#11332F; --onto-ink:#6FD3CD;
+  --kg:#EE9D45; --kg-soft:#382712; --kg-ink:#F4B46C;
+  --agent:#8AA5FF; --agent-soft:#1A2548;
+  --bad:#F0776B; --bad-soft:#3B1C1A; --ok:#5AC98F; --ok-soft:#12301F;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -12px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.6; padding-inline:16px; padding-block:28px 56px}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--agent); outline-offset:2px}
+.wrap{max-width:1160px; margin-inline:auto; display:flex; flex-direction:column; gap:22px}
+
+.top{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px 40px}
+.top .eyebrow{font-family:var(--f-mono); font-size:12px; letter-spacing:.12em; color:var(--muted); margin:0 0 6px}
+.top h1{font-family:var(--f-display); font-weight:900; font-size:clamp(28px,4.2vw,42px); line-height:1.12; margin:0; text-wrap:balance}
+.top h1 .o{color:var(--onto)} .top h1 .k{color:var(--kg-ink)} .top h1 .and{font-size:.6em; color:var(--muted); margin-inline:.2em}
+.top .lede{margin:0; color:var(--ink-2); max-width:36em; font-size:15px}
+
+.player{background:var(--paper); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:var(--shadow)}
+.player:fullscreen{border-radius:0; border:0; display:flex; flex-direction:column; justify-content:center; overflow:auto}
+.stage{position:relative; width:100%; aspect-ratio:16/9; container:stage / size; overflow:hidden; isolation:isolate;
+  background-color:var(--stage);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:32px 32px}
+@media (max-width:640px){ .stage{aspect-ratio:2/3} }
+.player:fullscreen .stage{width:min(100%, calc((100vh - 190px) * 16 / 9)); margin-inline:auto}
+
+.toast{position:absolute; left:0; right:0; top:12px; margin-inline:auto; width:max-content; max-width:90%; background:var(--ink); color:var(--paper); padding:6px 14px; border-radius:999px; font-size:13px; opacity:0; transition:opacity .3s; pointer-events:none; z-index:9}
+.toast.show{opacity:1}
+
+.captions{display:flex; align-items:center; gap:14px 18px; padding:14px 20px; min-height:86px; border-top:1px solid var(--line)}
+.cap-text{margin:0; flex:1; font-size:clamp(15px,1.7vw,18.5px); line-height:1.7; text-wrap:pretty; transition:opacity .2s}
+.cap-text.fade{opacity:0}
+.k-onto{color:var(--onto-ink); font-weight:700} .k-kg{color:var(--kg-ink); font-weight:700} .k-agent{color:var(--agent); font-weight:700}
+.cap-wait{display:flex; align-items:center; gap:10px; flex-shrink:0}
+.cap-wait .you{font-size:12px; font-weight:700; letter-spacing:.08em; color:var(--agent); background:var(--agent-soft); padding:3px 10px; border-radius:999px; white-space:nowrap}
+.btn{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--card); padding:7px 16px; border-radius:999px; cursor:pointer; font-size:14px; font-weight:500; line-height:1.4; white-space:nowrap; transition:background .2s,border-color .2s}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.btn.primary:hover{background:var(--onto); border-color:var(--onto)}
+.btn svg{width:14px; height:14px; fill:currentColor}
+@media (max-width:640px){ .captions{flex-direction:column; align-items:stretch; padding:12px 16px} .cap-wait{justify-content:space-between} }
+
+.controls{display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; padding:10px 14px; border-top:1px solid var(--line-2)}
+.ic{width:40px; height:40px; display:grid; place-items:center; border-radius:50%; border:0; background:transparent; cursor:pointer; color:var(--ink); flex-shrink:0}
+.ic:hover{background:var(--line-2)}
+.ic svg{width:20px; height:20px; fill:currentColor}
+.ic.play{background:var(--ink); color:var(--paper); width:44px; height:44px}
+.ic.play:hover{background:var(--onto)}
+.time{font-family:var(--f-mono); font-size:13px; font-variant-numeric:tabular-nums; color:var(--muted); white-space:nowrap}
+.progress{position:relative; flex:1 1 240px; height:32px; cursor:pointer; touch-action:none}
+.progress .track{position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--line-2); overflow:hidden}
+.progress .fill{position:absolute; top:0; bottom:0; left:0; width:0; background:var(--onto)}
+.progress .tick{position:absolute; top:50%; width:2px; height:12px; margin:-6px 0 0 -1px; background:var(--paper); pointer-events:none}
+.progress .knob{position:absolute; top:50%; left:0; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; background:var(--onto); box-shadow:0 0 0 3px var(--paper); pointer-events:none}
+.ctl-right{display:flex; gap:6px; align-items:center; margin-left:auto}
+.pill-btn{font-size:13px; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); cursor:pointer; white-space:nowrap}
+.pill-btn.mono{font-family:var(--f-mono); min-width:52px}
+.pill-btn[aria-pressed="true"]{background:var(--onto-soft); border-color:var(--onto); color:var(--onto-ink); font-weight:500}
+@media (max-width:640px){ .progress{order:-1; flex-basis:100%} }
+
+.chapters{list-style:none; margin:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:4px 8px; padding:12px 12px 16px; border-top:1px solid var(--line-2)}
+.ch{display:flex; gap:10px; align-items:baseline; width:100%; text-align:left; padding:8px 10px; border-radius:10px; border:1px solid transparent; background:transparent; cursor:pointer; font-size:14px; line-height:1.4; color:var(--ink-2)}
+.ch:hover{background:var(--line-2)}
+.ch .n{font-family:var(--f-mono); font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums}
+.ch .dur{margin-left:auto; font-family:var(--f-mono); font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.ch.done .n{color:var(--onto-ink)}
+.ch[aria-current="true"]{background:var(--onto-soft); color:var(--ink); border-color:var(--onto); font-weight:500}
+.ch[aria-current="true"] .n{color:var(--onto-ink)}
+
+.transcript{background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:2px 20px 10px}
+.transcript summary{cursor:pointer; padding:12px 0; font-weight:700}
+.transcript h3{font-family:var(--f-display); font-size:17px; margin:18px 0 6px}
+.transcript ol{margin:0; padding-left:1.4em; display:grid; gap:4px; max-width:46em; color:var(--ink-2)}
+.tline{background:none; border:0; padding:0; text-align:left; cursor:pointer; color:inherit; font:inherit; line-height:1.65}
+.tline:hover{color:var(--ink); text-decoration:underline; text-decoration-color:var(--line)}
+.transcript li.cur .tline{color:var(--ink); font-weight:500}
+.foot{font-size:13px; color:var(--muted); max-width:52em; margin:0}
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation-duration:.001s!important; animation-iteration-count:1!important; transition-duration:.001s!important} }
+</style>
+</head>
+<body>
+
+<style>
+/* ---------- scene frame ---------- */
+.scene{position:absolute; inset:0; display:flex; flex-direction:column; gap:1.1em; padding:1.6em 2.2em; font-size:clamp(10px,1.6cqw,20px); line-height:1.5;
+  opacity:0; visibility:hidden; transition:opacity .45s ease, visibility 0s linear .45s}
+.scene.active{opacity:1; visibility:visible; transition:opacity .45s ease, visibility 0s}
+@container stage (orientation: portrait){ .scene{font-size:clamp(10px,3.4cqw,16px); padding:1.3em 1.2em; gap:.9em} }
+.scene [data-in]{opacity:0; translate:0 .7em; transition:opacity .55s ease, translate .6s cubic-bezier(.2,.75,.25,1)}
+.scene [data-in].on{opacity:1; translate:0 0}
+.scene [data-in]:not(.on){pointer-events:none}
+.scene svg [data-in], .scene tr[data-in]{translate:none}
+.sc-head{display:flex; flex-direction:column; gap:.15em}
+.kicker{font-family:var(--f-mono); font-size:.72em; letter-spacing:.14em; color:var(--muted); margin:0}
+.kicker b{color:var(--onto-ink); font-weight:600}
+.scene h2{font-family:var(--f-display); font-weight:900; font-size:2.05em; line-height:1.18; margin:0; text-wrap:balance; letter-spacing:.01em; word-break:keep-all; overflow-wrap:anywhere}
+.scene h2 .o{color:var(--onto)} .scene h2 .k{color:var(--kg)} .scene h2 .a{color:var(--agent)}
+.seg{display:inline-flex; align-self:flex-start; border:1px solid var(--line); border-radius:999px; padding:3px; background:var(--card); gap:2px}
+.seg button{border:0; background:transparent; border-radius:999px; padding:.35em .9em; font-size:.85em; cursor:pointer; color:var(--ink-2); font-weight:500; white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.xbtn{border:1px solid var(--line); background:var(--card); border-radius:.6em; padding:.4em .8em; font-size:.85em; cursor:pointer; font-weight:500; color:var(--ink); white-space:nowrap}
+.xbtn:hover{border-color:var(--ink-2)}
+.xbtn.o{border-color:var(--onto); color:var(--onto-ink)} .xbtn.k{border-color:var(--kg); color:var(--kg-ink)} .xbtn.a{border-color:var(--agent); color:var(--agent)}
+.tags{display:flex; flex-wrap:wrap; gap:.35em}
+.tag{display:inline-block; font-size:.78em; padding:.12em .65em; border-radius:999px; font-weight:500}
+.tag.bad{background:var(--bad-soft); color:var(--bad)} .tag.ok{background:var(--ok-soft); color:var(--ok)}
+.pill{display:inline-block; padding:.05em .55em; border-radius:.4em; font-weight:700}
+.pill.onto{background:var(--onto-soft); color:var(--onto-ink)} .pill.kg{background:var(--kg-soft); color:var(--kg-ink)}
+.who{display:inline-block; font-size:.75em; font-weight:700; color:var(--agent); background:var(--agent-soft); padding:.08em .5em; border-radius:.3em; margin-right:.5em; vertical-align:.1em; white-space:nowrap}
+.note{font-size:.72em; color:var(--muted); margin:0}
+.card{background:var(--card); border:1px solid var(--line); border-radius:.8em}
+@keyframes pulse{50%{stroke-width:5}}
+@keyframes fadeUp{from{opacity:0; translate:0 .4em}to{opacity:1; translate:0 0}}
+
+/* ---------- 0 cover ---------- */
+.cover{padding:0; justify-content:center}
+.cover canvas{position:absolute; inset:0; width:100%; height:100%; z-index:-1}
+.cover-inner{position:relative; margin:auto; width:min(40em,88%); display:flex; flex-direction:column; align-items:flex-start; gap:1em; padding:2.2em 2.4em;
+  background:color-mix(in srgb,var(--stage) 86%,transparent); border:1px solid var(--line); border-radius:1em}
+.cover-title{font-family:var(--f-display); font-weight:900; font-size:3.4em; line-height:1.05; margin:0; display:flex; flex-wrap:wrap; align-items:baseline; gap:.1em .25em}
+.cover-title .o{color:var(--onto)} .cover-title .k{color:var(--kg)} .cover-title .vs{font-size:.42em; color:var(--muted); font-weight:700}
+.cover-sub{margin:0; font-size:1.12em; color:var(--ink-2); max-width:30em}
+.big-play{display:inline-flex; align-items:center; gap:.6em; font-size:1.05em; font-weight:700; padding:.7em 1.4em .7em 1.1em; border-radius:999px; border:0; background:var(--ink); color:var(--paper); cursor:pointer}
+.big-play svg{width:1.2em; height:1.2em; fill:currentColor}
+.big-play:hover{background:var(--onto)}
+.cover-meta{margin:0; font-family:var(--f-mono); font-size:.78em; color:var(--muted)}
+@container stage (orientation: portrait){ .cover-title{font-size:2.7em} .cover-inner{padding:1.6em 1.4em; width:90%} }
+
+/* ---------- 1 agent's first day ---------- */
+.s1-grid{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.7fr); gap:1.8em; align-items:center; align-content:center}
+.agent-card{display:flex; flex-direction:column; gap:1.2em; align-items:flex-start; padding-top:1em}
+.bot{width:5.2em; height:4.4em; border-radius:1.2em; background:var(--agent); position:relative; display:flex; justify-content:center; align-items:center; gap:.9em; flex-shrink:0; margin-top:1em}
+.bot::before{content:""; position:absolute; top:-.9em; left:calc(50% - .09em); width:.18em; height:.9em; background:var(--agent)}
+.bot::after{content:""; position:absolute; top:-1.3em; left:calc(50% - .3em); width:.6em; height:.6em; border-radius:50%; background:var(--kg)}
+.bot-eye{width:.8em; height:.8em; border-radius:50%; background:#fff; margin-top:-.5em; animation:blink 4s infinite}
+.bot-mouth{position:absolute; bottom:.75em; left:calc(50% - .8em); width:1.6em; height:.3em; border-radius:.2em; background:rgba(255,255,255,.85); transition:.3s}
+.bot.confused .bot-mouth{width:.7em; height:.7em; left:calc(50% - .35em); border-radius:50%; background:transparent; border:.15em solid rgba(255,255,255,.9)}
+.bot.confused::after{background:var(--bad)}
+@keyframes blink{0%,92%,100%{scale:1 1} 95%{scale:1 .1}}
+.bubble{background:var(--card); border:1px solid var(--line); border-radius:.9em; border-top-left-radius:.2em; padding:.8em 1em; font-size:1.05em; line-height:1.55; box-shadow:var(--shadow)}
+.bubble b{color:var(--agent)}
+.systems{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1em; padding-top:1.8em; align-items:start}
+.sys{position:relative; background:var(--card); border:1px solid var(--line); border-radius:.6em; font-size:.8em}
+.sys-bar{display:flex; justify-content:space-between; gap:.5em; padding:.4em .7em; border-bottom:1px solid var(--line); font-family:var(--f-mono); font-size:.9em; color:var(--muted); background:var(--line-2); border-radius:.6em .6em 0 0}
+.sys-bar b{color:var(--ink); font-weight:600}
+.sys-body{overflow:hidden}
+.sys table{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums}
+.sys th,.sys td{text-align:left; padding:.38em .5em; border-bottom:1px solid var(--line-2); white-space:nowrap}
+.sys th{font-family:var(--f-mono); font-weight:600; font-size:.88em; color:var(--ink-2)}
+.sys tbody tr:last-child td{border-bottom:0}
+.huh{position:absolute; top:-2.1em; right:-.4em; rotate:3deg; white-space:nowrap; background:var(--bad); color:#fff; font-size:.95em; font-weight:700; padding:.2em .7em; border-radius:999px; z-index:2}
+.huh.b{top:auto; bottom:-2.1em; right:auto; left:-.3em; rotate:-2deg}
+.systems .sys:nth-child(2){margin-bottom:1.6em}
+.s1-banner{align-self:flex-start; display:flex; flex-wrap:wrap; align-items:center; gap:.4em .6em; font-size:1.15em; padding:.6em 1em; border-radius:.7em; background:var(--card); border:1px solid var(--line)}
+@container stage (orientation: portrait){
+  .s1-grid{grid-template-columns:1fr; gap:1.2em; padding-top:0}
+  .agent-card{flex-direction:row; align-items:center; padding-top:.6em}
+  .bot{font-size:.75em; margin-top:.6em}
+  .systems{grid-template-columns:1fr; gap:2.2em; padding-top:1.4em}
+  .systems .sys:nth-child(2){margin-bottom:.8em}
+  .sys tbody tr:nth-child(3){display:none}
+}
+
+/* ---------- 2 school analogy ---------- */
+.s2-grid{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) 15em; gap:1.4em}
+.s2-fig{min-height:0; display:flex; align-items:flex-start; justify-content:center}
+.s2-fig svg{width:100%; height:100%; max-height:100%; overflow:visible}
+.s2-side{display:flex; flex-direction:column; gap:.7em; font-size:.92em; min-height:0}
+.legend{display:flex; flex-direction:column; gap:.35em}
+.lg{display:flex; align-items:center; gap:.55em}
+.lg::before{content:""; width:1.5em; height:.95em; border-radius:.2em; border:2px solid var(--onto); background:var(--onto-soft); flex-shrink:0}
+.lg.k::before{border-radius:999px; border-color:var(--kg); background:var(--kg-soft)}
+.lg.i::before{height:0; border-width:2px 0 0; border-style:dashed; border-color:var(--muted); background:none; border-radius:0}
+.rule{background:var(--card); border:1px solid var(--line); border-radius:.6em; padding:.5em .75em; line-height:1.45; transition:.3s}
+.rule b{color:var(--onto-ink); margin-right:.3em}
+.rule .st{display:block; margin-top:.2em; font-size:.85em; color:var(--ok); font-weight:500}
+.rule.bad{border-color:var(--bad); background:var(--bad-soft)} .rule.bad .st{color:var(--bad)}
+.s2-ctrl{display:flex; flex-direction:column; gap:.55em; margin-top:auto}
+.acts{display:flex; flex-wrap:wrap; gap:.4em}
+.g2 text{font-family:var(--f-body)}
+.cls rect{fill:var(--onto-soft); stroke:var(--onto); stroke-width:2.5}
+.cls text{fill:var(--onto-ink); font-weight:700; font-size:26px}
+.inst rect{fill:var(--kg-soft); stroke:var(--kg); stroke-width:2; transition:fill .3s, stroke .3s}
+.inst text{fill:var(--ink); font-size:22px; font-weight:500}
+.rel{stroke:var(--onto); stroke-width:2.5; fill:none}
+.rel-l{fill:var(--onto-ink); font-size:18px; font-weight:700}
+.fact{stroke:var(--kg); stroke-width:2; fill:none}
+.fact-l{fill:var(--kg-ink); font-size:16px; font-weight:500}
+.isa{stroke:var(--muted); stroke-width:1.5; stroke-dasharray:5 5; fill:none}
+.isa-l{fill:var(--muted); font-size:15px}
+.grp{fill:none; stroke:var(--onto); stroke-opacity:.5; stroke-width:1.5; stroke-dasharray:6 5}
+.band-l{font-family:var(--f-mono); font-size:15px; font-weight:600; letter-spacing:.06em}
+.band-l.o{fill:var(--onto-ink)} .band-l.k{fill:var(--kg-ink)}
+.band-o{fill:var(--onto-soft); opacity:.4} .band-k{fill:var(--kg-soft); opacity:.4}
+.mk-o{fill:var(--onto)} .mk-k{fill:var(--kg)}
+.layer{transition:opacity .4s}
+#s2svg[data-view="onto"] .layer-k, #s2svg[data-view="kg"] .layer-o, #s2svg:not([data-view="all"]) .layer-i{opacity:.1}
+.x-gang,.x-art,.x-fix,.x-warn{opacity:0; transition:opacity .5s}
+#s2svg.has-gang .x-gang, #s2svg.has-art .x-art, #s2svg.art-fixed .x-fix{opacity:1}
+#s2svg.has-art:not(.art-fixed) .x-warn{opacity:1}
+#s2svg.has-art:not(.art-fixed) .art-node rect{stroke:var(--bad); fill:var(--bad-soft); animation:pulse 1.2s infinite}
+.x-warn text{fill:var(--bad); font-size:17px; font-weight:700}
+@container stage (orientation: portrait){
+  .s2-grid{grid-template-columns:1fr; grid-template-rows:auto 1fr; gap:.8em}
+  .s2-fig svg{height:auto}
+  .legend{flex-direction:row; flex-wrap:wrap; gap:.3em 1em}
+  .s2-side{font-size:.88em; gap:.5em}
+  .s2-ctrl{margin-top:.2em}
+}
+
+/* ---------- 3 comparison + quiz ---------- */
+.s3-body{flex:1; min-height:0; display:flex; flex-direction:column; gap:.9em}
+.cmp{width:100%; border-collapse:separate; border-spacing:0; font-size:.95em}
+.cmp th,.cmp td{padding:.45em .8em; text-align:left; vertical-align:top; border-bottom:1px solid var(--line-2)}
+.cmp thead th{font-family:var(--f-display); font-size:1.2em; font-weight:900; border-bottom:2px solid var(--line); line-height:1.2}
+.cmp thead th.o{color:var(--onto)} .cmp thead th.k{color:var(--kg-ink)}
+.cmp .en{display:block; font-family:var(--f-mono); font-size:.52em; font-weight:400; letter-spacing:.08em; color:var(--muted)}
+.cmp tbody th{font-weight:500; color:var(--muted); white-space:nowrap; width:6.5em; font-size:.9em}
+.cmp td.o{background:color-mix(in srgb,var(--onto-soft) 45%,transparent)}
+.cmp td.k{background:color-mix(in srgb,var(--kg-soft) 45%,transparent)}
+.analogy{align-self:flex-start; display:flex; flex-wrap:wrap; gap:.4em 1.4em; align-items:center; font-size:1.1em; padding:.55em 1em; background:var(--card); border:1px solid var(--line); border-radius:.7em}
+.quiz{position:absolute; inset:0; display:grid; place-items:center; padding:1.5em; z-index:3; background:color-mix(in srgb,var(--stage) 70%,transparent); backdrop-filter:blur(3px)}
+.quiz.dismiss{opacity:0!important; pointer-events:none!important}
+.quiz-card{position:relative; width:min(30em,100%); background:var(--card); border:1px solid var(--line); border-radius:1em; padding:1.3em 1.5em; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:.8em}
+.q-close{position:absolute; top:.7em; right:.8em; border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:.85em}
+.q-close:hover{color:var(--ink)}
+.q-text{font-family:var(--f-display); font-weight:700; font-size:1.5em; line-height:1.35; margin:0; min-height:2.7em; text-wrap:balance}
+.q-btns{display:grid; grid-template-columns:1fr 1fr; gap:.6em}
+.q-btns[hidden]{display:none}
+.q-btns button{padding:.65em; border-radius:.7em; font-size:1.05em; font-weight:700; cursor:pointer; border:2px solid; background:var(--card)}
+.q-btns [data-ans="onto"]{border-color:var(--onto); color:var(--onto-ink)}
+.q-btns [data-ans="kg"]{border-color:var(--kg); color:var(--kg-ink)}
+.q-btns button:disabled{cursor:default; opacity:.45}
+.q-btns button.right{background:var(--ok-soft); opacity:1} .q-btns button.wrong{background:var(--bad-soft); opacity:1}
+.q-fb{margin:0; min-height:3em; font-size:.95em; color:var(--ink-2)}
+.q-fb b.ok{color:var(--ok)} .q-fb b.no{color:var(--bad)}
+.q-foot{display:flex; justify-content:space-between; align-items:center; gap:1em}
+.q-dots{display:flex; gap:.35em}
+.q-dots i{width:.6em; height:.6em; border-radius:50%; background:var(--line)}
+.q-dots i.ok{background:var(--ok)} .q-dots i.no{background:var(--bad)}
+.quiz-open{position:absolute; right:2.2em; bottom:1.4em; z-index:2}
+@container stage (orientation: portrait){
+  .cmp{font-size:.88em} .cmp th,.cmp td{padding:.4em .45em} .cmp tbody th{width:4.2em; white-space:normal}
+  .quiz-card{padding:1.1em 1.1em}
+  .quiz-open{right:1.2em; bottom:1em}
+}
+</style>
+<style>
+/* ---------- 4 timeline ---------- */
+.s4-body{flex:1; min-height:0; display:flex; flex-direction:column; gap:1.1em}
+.tl{display:flex; flex-direction:column; gap:.6em}
+.tl-eras,.tl-track{display:grid; grid-template-columns:repeat(11,minmax(0,1fr)); gap:0 .35em}
+.tl-eras span{font-size:.72em; font-weight:700; color:var(--muted); border-top:3px solid var(--line); padding-top:.3em; letter-spacing:.04em; transition:.3s}
+.tl-eras span.cur{color:var(--ink); border-color:var(--onto)}
+.tl-track{list-style:none; margin:0; padding:0; position:relative}
+.tl-track::before{content:""; position:absolute; left:0; right:0; top:.72em; height:2px; background:var(--line)}
+.tl-node{position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:.3em; background:none; border:0; padding:0; cursor:pointer; width:100%; text-align:left; color:var(--ink-2)}
+.tl-node .dot{width:1.5em; height:1.5em; border-radius:50%; border:2px solid var(--muted); background:var(--stage); transition:.3s}
+.tl-node .yr{font-family:var(--f-mono); font-size:.72em; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap}
+.tl-node .nm{font-size:.78em; font-weight:500; line-height:1.3}
+.tl-node:hover .dot{border-color:var(--onto)}
+.tl-node.cur .dot{background:var(--onto); border-color:var(--onto); box-shadow:0 0 0 .3em var(--onto-soft)}
+.tl-node.cur .yr{color:var(--onto-ink)} .tl-node.cur .nm{color:var(--ink); font-weight:700}
+.tl-detail{flex:1; min-height:0; display:flex; flex-direction:column; gap:.5em; padding:1.2em 1.5em; background:var(--card); border:1px solid var(--line); border-radius:.9em}
+.tl-meta{display:flex; flex-wrap:wrap; align-items:center; gap:.4em .9em}
+.era-chip{font-size:.75em; font-weight:700; padding:.12em .65em; border-radius:999px; background:var(--onto-soft); color:var(--onto-ink)}
+.tl-year{font-family:var(--f-mono); font-weight:600; font-size:1.05em; color:var(--kg-ink)}
+.tl-detail h3{font-family:var(--f-display); font-size:1.55em; margin:0; line-height:1.25}
+.tl-text{margin:0; font-size:1.02em; color:var(--ink-2); max-width:40em}
+.tl-detail.swap{animation:fadeUp .35s}
+@container stage (orientation: portrait){
+  .tl-eras{display:none}
+  .tl-track{grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7em .4em}
+  .tl-track::before{display:none}
+  .tl-detail{padding:1em 1.1em}
+}
+
+/* ---------- 5 LLM is not enough ---------- */
+.s5-grid{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); grid-template-rows:auto auto; align-content:center; gap:1.6em 1.6em}
+.s5-left{display:flex; flex-direction:column; gap:.9em}
+.ask{font-size:1.15em; padding:.7em 1em; background:var(--card); border:1px solid var(--line); border-radius:.9em; border-top-left-radius:.2em; box-shadow:var(--shadow)}
+.ask b{color:var(--agent)}
+.depts{display:flex; flex-direction:column; gap:.45em}
+.dh{margin:0; font-size:.85em; color:var(--muted)}
+.dept{display:grid; grid-template-columns:4.4em 1fr; gap:.8em; align-items:baseline; background:var(--card); border:1px solid var(--line); border-radius:.6em; padding:.45em .8em}
+.dept b{font-size:.85em; color:var(--muted); font-weight:700}
+.ans{display:flex; flex-direction:column; gap:.75em; padding:1em 1.2em; background:var(--card); border:1px solid var(--line); border-radius:.9em; align-self:start}
+.ans-no,.ans-yes{display:none; flex-direction:column; gap:.6em}
+.ans[data-mode="no"] .ans-no, .ans[data-mode="yes"] .ans-yes{display:flex; animation:fadeUp .4s}
+.ans-line{margin:0}
+.ans-line b{font-family:var(--f-mono); font-size:1.15em}
+.ans-no .ans-line b{color:var(--bad)} .ans-yes .ans-line b{color:var(--ok)}
+.def{margin:0; padding:.55em .8em; border-left:3px solid var(--onto); background:var(--onto-soft); border-radius:0 .4em .4em 0; font-size:.95em}
+.def small{display:block; font-family:var(--f-mono); font-size:.78em; color:var(--onto-ink)}
+.trace{display:flex; flex-wrap:wrap; align-items:center; gap:.3em; font-size:.8em; color:var(--muted)}
+.trace span{padding:.12em .55em; border-radius:.35em; background:var(--line-2); color:var(--ink-2); font-family:var(--f-mono)}
+.brain{grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.8em}
+.brain div{padding:.55em .9em; border-radius:.7em; border:1px solid var(--line); background:var(--card); font-size:.92em; color:var(--ink-2)}
+.brain b{display:block; font-family:var(--f-display); font-size:1.2em; color:var(--agent)}
+.brain b.k{color:var(--kg-ink)} .brain b.o{color:var(--onto)}
+@container stage (orientation: portrait){
+  .s5-grid{grid-template-columns:1fr; grid-template-rows:auto; gap:.8em}
+  .s5-left{gap:.6em} .dept{padding:.3em .7em} .ask{font-size:1.05em}
+  .brain{gap:.4em} .brain div{padding:.4em .55em; font-size:.82em}
+}
+
+/* ---------- 6 mesh vs hub ---------- */
+.s6-grid{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) 13em; gap:1.4em}
+.s6-fig{min-height:0; display:flex; align-items:center; justify-content:center}
+.s6-fig svg{width:100%; height:100%; overflow:visible}
+.s6-side{display:flex; flex-direction:column; gap:.9em; justify-content:center}
+.count{font-size:.95em; color:var(--ink-2)}
+.count b{display:block; font-family:var(--f-display); font-weight:900; font-size:3.4em; line-height:1; color:var(--bad); transition:color .3s}
+.count.hub b{color:var(--onto)}
+.count .f{display:block; font-family:var(--f-mono); font-size:.85em; color:var(--muted)}
+.g6 text{font-family:var(--f-body)}
+.agt rect{fill:var(--agent-soft); stroke:var(--agent); stroke-width:2}
+.agt text{fill:var(--agent); font-weight:700; font-size:19px}
+.sysn rect{fill:var(--card); stroke:var(--ink-2); stroke-width:1.5}
+.sysn text{fill:var(--ink); font-size:18px; font-weight:500}
+.col-l{font-family:var(--f-mono); font-size:13px; letter-spacing:.1em; fill:var(--muted)}
+.wire{fill:none; stroke-width:2; stroke-dasharray:1 1; stroke-dashoffset:1; transition:stroke-dashoffset .9s ease}
+.mesh .wire{stroke:var(--bad); stroke-opacity:.6}
+.hubw .wire{stroke:var(--onto); stroke-width:3}
+#s6svg[data-mode="mesh"] .mesh .wire, #s6svg[data-mode="hub"] .hubw .wire{stroke-dashoffset:0}
+.hubnode{opacity:0; transition:opacity .5s}
+#s6svg[data-mode="hub"] .hubnode{opacity:1}
+.hubnode rect{fill:var(--onto-soft); stroke:var(--onto); stroke-width:3}
+.hubnode .h1{fill:var(--onto-ink); font-family:var(--f-display); font-weight:900; font-size:26px}
+.hubnode .h2{fill:var(--onto-ink); font-size:14px}
+.a4{transition:opacity .4s}
+#s6svg:not(.plus) .a4{opacity:0}
+@container stage (orientation: portrait){
+  .s6-grid{grid-template-columns:1fr; grid-template-rows:auto auto; gap:.8em}
+  .s6-fig svg{height:auto}
+  .s6-side{flex-direction:row; flex-wrap:wrap; align-items:flex-end; gap:.6em 1.2em}
+  .count b{font-size:2.6em}
+}
+
+/* ---------- 7 platform capabilities ---------- */
+.s7-grid{flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:1.6em; align-items:center}
+.stack{display:flex; flex-direction:column; gap:.55em}
+.tier{display:flex; flex-wrap:wrap; gap:.4em; align-items:center; padding:.6em .8em; border-radius:.7em; border:1px dashed var(--line)}
+.tier-l{width:100%; font-size:.7em; font-family:var(--f-mono); letter-spacing:.12em; color:var(--muted)}
+.tier.plat{border:2px solid var(--onto); background:color-mix(in srgb,var(--onto-soft) 55%,transparent)}
+.tier.plat .tier-l{color:var(--onto-ink); font-weight:600}
+.chip{font-size:.82em; padding:.15em .65em; border-radius:999px; background:var(--card); border:1px solid var(--line)}
+.chip.a{color:var(--agent); border-color:var(--agent); background:var(--agent-soft); font-weight:500}
+.caps{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.4em; width:100%}
+.cap{display:flex; flex-direction:column; align-items:flex-start; gap:.1em; padding:.5em .55em; border-radius:.55em; background:var(--card); border:1px solid var(--line); cursor:pointer; text-align:left; color:var(--ink); opacity:.5; transition:opacity .3s, background .3s, color .3s}
+.cap .n{font-family:var(--f-mono); font-size:.68em; color:var(--muted)}
+.cap .t{font-weight:700; font-size:.88em; line-height:1.25}
+.cap.seen{opacity:1}
+.cap.cur{background:var(--ink); color:var(--paper); border-color:var(--ink); opacity:1}
+.cap.cur .n{color:inherit; opacity:.7}
+.cap-detail{display:flex; flex-direction:column; gap:.6em; padding:1.3em 1.4em; background:var(--card); border:1px solid var(--line); border-radius:.9em; min-height:13em}
+.cap-detail .sub{margin:0; font-family:var(--f-mono); font-size:.75em; letter-spacing:.1em; color:var(--onto-ink)}
+.cap-detail .big{margin:0; font-family:var(--f-display); font-weight:900; font-size:1.9em; line-height:1.2}
+.cap-detail .big span{font-size:.55em; color:var(--muted); font-weight:700; margin-left:.4em}
+.cap-detail p{margin:0}
+.eg{font-size:.9em; background:var(--line-2); border-radius:.5em; padding:.55em .8em}
+.eg::before{content:"举个例子"; display:block; font-size:.78em; color:var(--muted); font-weight:700; letter-spacing:.08em; margin-bottom:.15em}
+.cap-detail.swap{animation:fadeUp .35s}
+@container stage (orientation: portrait){
+  .s7-grid{grid-template-columns:1fr; align-items:start; gap:.9em}
+  .tier{padding:.45em .6em}
+  .cap-detail{min-height:0; padding:1em 1.1em}
+}
+
+/* ---------- 8 task run ---------- */
+.s8-body{flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:1.2em}
+.req{align-self:flex-start; font-size:1.1em; padding:.6em 1em; background:var(--card); border:1px solid var(--line); border-radius:.9em; border-top-left-radius:.2em; box-shadow:var(--shadow)}
+.pipe{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.7em}
+.stg{position:relative; display:flex; flex-direction:column; gap:.3em; padding:.8em .85em; background:var(--card); border:1px solid var(--line); border-radius:.7em; opacity:.35; transition:opacity .4s, border-color .3s, box-shadow .3s}
+.stg.lit{opacity:1; border-color:var(--onto); box-shadow:inset 0 0 0 1px var(--onto)}
+.stg.lit.warn{border-color:var(--kg); box-shadow:inset 0 0 0 1px var(--kg)}
+.stg.lit.stop{border-color:var(--bad); box-shadow:inset 0 0 0 1px var(--bad)}
+.stg:not(:last-child)::after{content:""; position:absolute; right:-.7em; top:2.1em; width:.7em; height:2px; background:var(--line)}
+.stg .n{font-family:var(--f-mono); font-size:.68em; letter-spacing:.1em; color:var(--muted)}
+.stg h4{margin:0; font-family:var(--f-display); font-size:1.25em; line-height:1.2}
+.stg p{margin:0; font-size:.86em; color:var(--ink-2); line-height:1.5; flex:1}
+.stg .src{font-size:.72em; color:var(--onto-ink); font-weight:500}
+.dial{display:flex; flex-wrap:wrap; align-items:center; gap:.5em 1.1em; padding:.6em 1em; background:var(--card); border:1px solid var(--line); border-radius:.8em}
+.dial label{font-weight:700}
+.dial input[type=range]{flex:1 1 10em; accent-color:var(--onto); min-width:0}
+.dial output{font-family:var(--f-mono); font-size:1.3em; font-weight:600; min-width:3.2ch; font-variant-numeric:tabular-nums}
+@container stage (orientation: portrait){
+  .pipe{grid-template-columns:1fr; gap:.4em}
+  .stg{flex-direction:row; flex-wrap:wrap; align-items:baseline; gap:.1em .6em; padding:.45em .7em}
+  .stg p{flex-basis:100%} .stg .src{display:none}
+  .stg:not(:last-child)::after{display:none}
+  .req{font-size:1em}
+}
+
+/* ---------- 9 summary ---------- */
+.sum{flex:1; min-height:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1em; align-items:stretch}
+.sum-card{display:flex; flex-direction:column; gap:.5em; padding:1.2em 1.3em; background:var(--card); border:1px solid var(--line); border-radius:1em}
+.glyph{width:3em; height:3em; stroke:var(--c); fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round}
+.glyph .f{fill:var(--c); stroke:none}
+.sum-card h3{margin:0; font-family:var(--f-display); font-weight:900; font-size:1.7em; color:var(--c); line-height:1.2}
+.sum-card .role{margin:0; font-weight:700}
+.sum-card p{margin:0; color:var(--ink-2); font-size:.95em}
+.finale-row{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.8em 1.5em}
+.finale{margin:0; font-family:var(--f-display); font-weight:900; font-size:1.6em; line-height:1.3; text-wrap:balance}
+.finale .o{color:var(--onto)}
+@container stage (orientation: portrait){
+  .sum{grid-template-columns:1fr; gap:.55em}
+  .sum-card{display:grid; grid-template-columns:auto 1fr; column-gap:.8em; row-gap:.15em; padding:.8em 1em; align-items:center}
+  .sum-card .glyph{grid-row:span 2; width:2.4em; height:2.4em}
+  .sum-card p:last-child{grid-column:1/-1}
+  .finale{font-size:1.3em}
+}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div>
+    <p class="eyebrow">动画讲解 · <span id="durLabel">约 10 分钟</span> · 小白友好</p>
+    <h1><span class="o">本体</span><span class="and">与</span><span class="k">知识图谱</span></h1>
+  </div>
+  <p class="lede">从亚里士多德讲到 Agent：两者有什么区别，是怎么一路演变过来的，以及企业为什么需要一个本体平台，才能让 Agent 真正落地。按播放键开始，随时可以暂停、跳章、动手试。</p>
+</header>
+
+<div class="player" id="player">
+<div class="stage" id="stage">
+
+<!-- 0 · cover -->
+<section class="scene cover active" data-scene="0" aria-label="封面">
+  <canvas id="coverCv" aria-hidden="true"></canvas>
+  <div class="cover-inner">
+    <p class="kicker">动画讲解 · 小白也能看懂</p>
+    <h2 class="cover-title"><span class="o">本体</span><span class="vs">与</span><span class="k">知识图谱</span></h2>
+    <p class="cover-sub">它们有什么区别？从哪里来？到了 Agent 时代，企业为什么需要一个本体平台？</p>
+    <button class="big-play" id="bigPlay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>开始播放</button>
+    <p class="cover-meta"><span id="coverDur">约 10 分钟</span> · 9 章 · 可随时暂停互动</p>
+  </div>
+</section>
+
+<!-- 1 · agent's first day -->
+<section class="scene" data-scene="1" aria-label="第 1 章">
+  <header class="sc-head"><p class="kicker"><b>CH.01</b> · 一个场景</p><h2>AI 员工入职第一天</h2></header>
+  <div class="s1-grid">
+    <div class="agent-card" data-in="1">
+      <div class="bot" id="bot" aria-hidden="true"><span class="bot-eye"></span><span class="bot-eye"></span><span class="bot-mouth"></span></div>
+      <div class="bubble"><b>老板：</b>华东区的大客户，这个月有几单延迟了？</div>
+    </div>
+    <div class="systems">
+      <div class="sys" data-in="2">
+        <div class="sys-bar"><b>CRM</b><span>客户表</span></div>
+        <div class="sys-body"><table>
+          <thead><tr><th>cust_id</th><th>名称</th><th>等级</th></tr></thead>
+          <tbody><tr><td>C-1024</td><td>华辰电子</td><td>VIP</td></tr><tr><td>C-1025</td><td>远帆物流</td><td>A</td></tr><tr><td>C-1031</td><td>启明医疗</td><td>重点</td></tr></tbody>
+        </table></div>
+        <span class="huh" data-in="3">“大客户”怎么算？</span>
+      </div>
+      <div class="sys" data-in="2">
+        <div class="sys-bar"><b>ERP</b><span>订单表</span></div>
+        <div class="sys-body"><table>
+          <thead><tr><th>order_no</th><th>cust_no</th><th>交期</th></tr></thead>
+          <tbody><tr><td>SO-88231</td><td>1024</td><td>09-12</td></tr><tr><td>SO-88240</td><td>1031</td><td>09-15</td></tr><tr><td>SO-88257</td><td>1025</td><td>09-18</td></tr></tbody>
+        </table></div>
+        <span class="huh" data-in="3">cust_no = cust_id ?</span>
+        <span class="huh b" data-in="3">“延迟”跟哪天比？</span>
+      </div>
+      <div class="sys" data-in="2">
+        <div class="sys-bar"><b>物流.xlsx</b><span>到货记录</span></div>
+        <div class="sys-body"><table>
+          <thead><tr><th>单号</th><th>买方</th><th>到货</th></tr></thead>
+          <tbody><tr><td>88231</td><td>华辰</td><td>09-16</td></tr><tr><td>88240</td><td>启明医疗</td><td>09-14</td></tr><tr><td>88257</td><td>远帆</td><td>未到</td></tr></tbody>
+        </table></div>
+        <span class="huh" data-in="3">“买方”是哪个客户？</span>
+      </div>
+    </div>
+  </div>
+  <div class="s1-banner" data-in="4">缺的不是智商，而是对业务的<b>理解</b>。补上这一课，要靠 <span class="pill onto">本体</span> + <span class="pill kg">知识图谱</span></div>
+</section>
+
+<!-- 2 · school analogy -->
+<section class="scene" data-scene="2" aria-label="第 2 章">
+  <header class="sc-head"><p class="kicker"><b>CH.02</b> · 打个比方</p><h2><span class="o">规则书</span>与<span class="k">事实网</span></h2></header>
+  <div class="s2-grid">
+    <div class="s2-fig">
+      <svg id="s2svg" class="g2" data-view="all" viewBox="0 0 800 530" role="img" aria-label="学校例子：上层是本体（类与关系），下层是知识图谱（具体的人和课）">
+        <defs>
+          <marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path class="mk-o" d="M0 0L10 5L0 10z"/></marker>
+          <marker id="arK" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path class="mk-k" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+        <g class="layer layer-o">
+          <g data-in="1">
+            <rect class="band-o" x="6" y="8" width="788" height="150" rx="14"/>
+            <text class="band-l o" x="24" y="36">本体层 · 规则书</text>
+            <g class="cls"><rect x="40" y="70" width="120" height="54" rx="6"/><text x="100" y="106" text-anchor="middle">班级</text></g>
+            <g class="cls"><rect x="240" y="70" width="120" height="54" rx="6"/><text x="300" y="106" text-anchor="middle">学生</text></g>
+            <g class="cls"><rect x="460" y="70" width="120" height="54" rx="6"/><text x="520" y="106" text-anchor="middle">课程</text></g>
+            <g class="cls"><rect x="650" y="70" width="120" height="54" rx="6"/><text x="710" y="106" text-anchor="middle">老师</text></g>
+          </g>
+          <g data-in="2">
+            <line class="rel" x1="240" y1="97" x2="164" y2="97" marker-end="url(#arO)"/><text class="rel-l" x="202" y="88" text-anchor="middle">属于</text>
+            <line class="rel" x1="360" y1="97" x2="456" y2="97" marker-end="url(#arO)"/><text class="rel-l" x="408" y="88" text-anchor="middle">选修</text>
+            <line class="rel" x1="650" y1="97" x2="584" y2="97" marker-end="url(#arO)"/><text class="rel-l" x="616" y="88" text-anchor="middle">讲授</text>
+          </g>
+        </g>
+        <g class="layer layer-i">
+          <g data-in="5">
+            <line class="isa" x1="100" y1="126" x2="100" y2="368"/>
+            <line class="isa" x1="300" y1="126" x2="300" y2="296"/>
+            <line class="isa" x1="520" y1="126" x2="520" y2="296"/>
+            <line class="isa" x1="710" y1="126" x2="710" y2="333"/>
+            <text class="isa-l" x="308" y="214">是一个</text>
+            <text class="isa-l" x="528" y="214">是一门</text>
+            <rect class="grp" x="34" y="368" width="132" height="64" rx="10"/>
+            <rect class="grp" x="248" y="296" width="104" height="208" rx="10"/>
+            <rect class="grp" x="468" y="296" width="104" height="208" rx="10"/>
+            <rect class="grp" x="652" y="333" width="116" height="64" rx="10"/>
+          </g>
+        </g>
+        <g class="layer layer-k">
+          <g data-in="4">
+            <rect class="band-k" x="6" y="250" width="788" height="272" rx="14"/>
+            <text class="band-l k" x="24" y="512">知识图谱层 · 事实网</text>
+            <line class="fact" x1="258" y1="332" x2="168" y2="392" marker-end="url(#arK)"/>
+            <line class="fact" x1="258" y1="400" x2="168" y2="400" marker-end="url(#arK)"/><text class="fact-l" x="212" y="424" text-anchor="middle">属于</text>
+            <line class="fact" x1="342" y1="330" x2="474" y2="330" marker-end="url(#arK)"/><text class="fact-l" x="408" y="320" text-anchor="middle">选修</text>
+            <line class="fact" x1="342" y1="400" x2="474" y2="400" marker-end="url(#arK)"/>
+            <line class="fact" x1="660" y1="358" x2="566" y2="334" marker-end="url(#arK)"/><text class="fact-l" x="610" y="330" text-anchor="middle">讲授</text>
+            <line class="fact" x1="660" y1="372" x2="566" y2="398" marker-end="url(#arK)"/>
+            <g class="inst"><rect x="44" y="378" width="112" height="44" rx="22"/><text x="100" y="408" text-anchor="middle">三年二班</text></g>
+            <g class="inst"><rect x="258" y="308" width="84" height="44" rx="22"/><text x="300" y="338" text-anchor="middle">小明</text></g>
+            <g class="inst"><rect x="258" y="378" width="84" height="44" rx="22"/><text x="300" y="408" text-anchor="middle">小红</text></g>
+            <g class="inst"><rect x="478" y="308" width="84" height="44" rx="22"/><text x="520" y="338" text-anchor="middle">数学</text></g>
+            <g class="inst"><rect x="478" y="378" width="84" height="44" rx="22"/><text x="520" y="408" text-anchor="middle">物理</text></g>
+            <g class="inst"><rect x="660" y="343" width="100" height="44" rx="22"/><text x="710" y="373" text-anchor="middle">王老师</text></g>
+          </g>
+          <g class="x-gang">
+            <line class="fact" x1="258" y1="466" x2="168" y2="408" marker-end="url(#arK)"/>
+            <g class="inst"><rect x="258" y="448" width="84" height="44" rx="22"/><text x="300" y="478" text-anchor="middle">小刚</text></g>
+          </g>
+          <g class="x-art art-node"><g class="inst"><rect x="478" y="448" width="84" height="44" rx="22"/><text x="520" y="478" text-anchor="middle">美术</text></g></g>
+          <g class="x-warn"><text x="578" y="478">✕ 没有老师</text></g>
+          <g class="x-fix"><line class="fact" x1="690" y1="387" x2="566" y2="464" marker-end="url(#arK)"/></g>
+        </g>
+      </svg>
+    </div>
+    <aside class="s2-side">
+      <div class="legend" data-in="1">
+        <span class="lg">类（本体）</span>
+        <span class="lg k">实例（知识图谱）</span>
+        <span class="lg i">“是一个”</span>
+      </div>
+      <div class="rule" id="rule1" data-in="3"><b>规则 ①</b>每门课程必须有至少 1 位老师讲授<span class="st" id="rule1st">✓ 全部满足</span></div>
+      <div class="rule" data-in="3"><b>规则 ②</b>每个学生只属于 1 个班级<span class="st">✓ 全部满足</span></div>
+      <div class="s2-ctrl" data-in="6">
+        <div class="seg" role="group" aria-label="显示哪一层">
+          <button class="ix" data-view="onto" aria-pressed="false">只看本体</button><button class="ix" data-view="kg" aria-pressed="false">只看图谱</button><button class="ix" data-view="all" aria-pressed="true">一起看</button>
+        </div>
+        <div class="acts">
+          <button class="xbtn k ix" id="addStu">加入小刚</button>
+          <button class="xbtn k ix" id="addArt">新增美术课</button>
+          <button class="xbtn o ix" id="fixArt" hidden>指派王老师</button>
+          <button class="xbtn ix" id="resetS2">复原</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- 3 · comparison + quiz -->
+<section class="scene" data-scene="3" aria-label="第 3 章">
+  <header class="sc-head"><p class="kicker"><b>CH.03</b> · 放在一起比</p><h2>一张表看懂区别</h2></header>
+  <div class="s3-body">
+    <table class="cmp">
+      <thead><tr><th></th><th class="o">本体<span class="en">ONTOLOGY</span></th><th class="k">知识图谱<span class="en">KNOWLEDGE GRAPH</span></th></tr></thead>
+      <tbody>
+        <tr data-in="1"><th>关心什么</th><td class="o">概念和规则：有哪些“类”，能有什么关系</td><td class="k">具体的事实：谁、和谁、发生了什么</td></tr>
+        <tr data-in="2"><th>回答的问题</th><td class="o">“客户是什么？客户和订单能有什么关系？”</td><td class="k">“张三下了哪几张订单？”</td></tr>
+        <tr data-in="3"><th>规模</th><td class="o">几十到几千个概念</td><td class="k">百万到上亿条事实</td></tr>
+        <tr data-in="4"><th>变化速度</th><td class="o">慢，像法律，改动要商量</td><td class="k">快，像流水账，每天都在长</td></tr>
+        <tr data-in="5"><th>谁来建</th><td class="o">业务专家 + 知识工程师</td><td class="k">系统自动采集、抽取</td></tr>
+        <tr data-in="5"><th>典型例子</th><td class="o">Schema.org、FIBO（金融）、SNOMED CT（医学）</td><td class="k">Wikidata、谷歌知识图谱</td></tr>
+      </tbody>
+    </table>
+    <div class="analogy" data-in="6"><span><span class="pill onto">本体</span> = 地图的<b>图例</b></span><span><span class="pill kg">知识图谱</span> = 按图例画出来的<b>地图</b></span></div>
+  </div>
+  <button class="btn quiz-open ix" id="quizOpen" hidden>打开小测验</button>
+  <div class="quiz" id="quiz" data-in="7" role="dialog" aria-label="小测验">
+    <div class="quiz-card">
+      <button class="q-close ix" id="qClose">收起 ✕</button>
+      <p class="kicker">小测验 · <span id="qNum">1 / 6</span></p>
+      <p class="q-text" id="qText"></p>
+      <div class="q-btns" id="qBtns"><button class="ix" data-ans="onto">本体</button><button class="ix" data-ans="kg">知识图谱</button></div>
+      <p class="q-fb" id="qFb" aria-live="polite"></p>
+      <div class="q-foot"><div class="q-dots" id="qDots"></div><button class="btn ix" id="qNext" disabled>下一题</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · history -->
+<section class="scene" data-scene="4" aria-label="第 4 章">
+  <header class="sc-head"><p class="kicker"><b>CH.04</b> · 历史沿革</p><h2>从亚里士多德到 Agent</h2></header>
+  <div class="s4-body">
+    <div class="tl">
+      <div class="tl-eras" id="tlEras"></div>
+      <ol class="tl-track" id="tlTrack"></ol>
+    </div>
+    <article class="tl-detail" id="tlDetail" aria-live="polite"></article>
+  </div>
+</section>
+
+<!-- 5 · LLM is not enough -->
+<section class="scene" data-scene="5" aria-label="第 5 章">
+  <header class="sc-head"><p class="kicker"><b>CH.05</b> · 大模型时代</p><h2>大模型这么聪明，为什么还不够？</h2></header>
+  <div class="s5-grid">
+    <div class="s5-left">
+      <div class="ask" data-in="1"><span class="who">提问</span>上个月的<b>活跃客户</b>有多少？</div>
+      <div class="depts" data-in="2">
+        <p class="dh">公司里对“活跃客户”有三种说法：</p>
+        <div class="dept"><b>销售部</b><span>90 天内下过单</span></div>
+        <div class="dept"><b>财务部</b><span>有未结清的账款</span></div>
+        <div class="dept"><b>客服部</b><span>30 天内提过工单</span></div>
+      </div>
+    </div>
+    <div class="ans" id="ans" data-mode="no" data-in="3">
+      <div class="seg" role="group" aria-label="是否接入本体">
+        <button class="ix" data-mode="no" aria-pressed="true">不接本体</button><button class="ix" data-mode="yes" aria-pressed="false">接入本体</button>
+      </div>
+      <div class="ans-no">
+        <p class="ans-line"><span class="who">Agent</span>上个月活跃客户约 <b>1,930</b> 个。</p>
+        <p class="ans-line"><span class="who">再问一次</span>上个月活跃客户有 <b>2,041</b> 个。</p>
+        <div class="tags"><span class="tag bad">口径靠猜</span><span class="tag bad">两次答案不一样</span><span class="tag bad">说不清出处</span></div>
+      </div>
+      <div class="ans-yes">
+        <p class="def"><small>本体定义 · 活跃客户 · v2.3 · 经营委员会确认</small>近 90 天内至少有 1 张<b>已付款</b>订单的客户</p>
+        <p class="ans-line"><span class="who">Agent</span>按这个定义，上个月活跃客户 <b>1,284</b> 个。</p>
+        <div class="trace"><span>客户</span>→<span>下单</span>→<span>订单.状态=已付款</span>→<span>ERP.orders</span></div>
+        <div class="tags"><span class="tag ok">口径统一</span><span class="tag ok">问几次都一样</span><span class="tag ok">每一步可追溯</span></div>
+      </div>
+      <p class="note">示意数据</p>
+    </div>
+    <div class="brain" data-in="5">
+      <div><b>大模型</b>= 大脑：会理解、会推理</div>
+      <div><b class="k">知识图谱</b>= 记忆：记住一条条事实</div>
+      <div><b class="o">本体</b>= 常识和规矩：懂业务、守规则</div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · mesh vs hub -->
+<section class="scene" data-scene="6" aria-label="第 6 章">
+  <header class="sc-head"><p class="kicker"><b>CH.06</b> · 企业落地</p><h2>多个 Agent，一团乱麻</h2></header>
+  <div class="s6-grid">
+    <div class="s6-fig">
+      <svg id="s6svg" class="g6" data-mode="none" viewBox="0 0 800 430" role="img" aria-label="三个 Agent 对接五类业务系统：点对点对接与通过本体平台对接的对比">
+        <text class="col-l" x="30" y="34">AGENT</text>
+        <text class="col-l" x="620" y="34">业务系统</text>
+        <g class="mesh" id="s6mesh"></g>
+        <g class="hubw" id="s6hubw"></g>
+        <g class="hubnode"><rect x="310" y="175" width="180" height="110" rx="14"/><text class="h1" x="400" y="228" text-anchor="middle">本体平台</text><text class="h2" x="400" y="256" text-anchor="middle">客户 · 订单 · 物料 · 规则</text></g>
+        <g id="s6nodes" data-in="1"></g>
+      </svg>
+    </div>
+    <div class="s6-side">
+      <div class="count" id="count" data-in="2"><b id="cntN">15</b>条对接线<span class="f" id="cntF">3 个 Agent × 5 类系统</span></div>
+      <div class="seg" role="group" aria-label="对接方式" data-in="2">
+        <button class="ix" data-mode="mesh" aria-pressed="true">各自对接</button><button class="ix" data-mode="hub" aria-pressed="false">本体平台</button>
+      </div>
+      <button class="xbtn a ix" id="plusBtn" data-in="3">再加一个 Agent</button>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · platform capabilities -->
+<section class="scene" data-scene="7" aria-label="第 7 章">
+  <header class="sc-head"><p class="kicker"><b>CH.07</b> · 本体平台</p><h2>本体平台的五种能力</h2></header>
+  <div class="s7-grid">
+    <div class="stack">
+      <div class="tier"><span class="tier-l">AGENT 层</span><span class="chip a">客服 Agent</span><span class="chip a">供应链 Agent</span><span class="chip a">财务 Agent</span></div>
+      <div class="tier plat"><span class="tier-l">本体平台</span><div class="caps" id="caps"></div></div>
+      <div class="tier"><span class="tier-l">数据与系统</span><span class="chip">CRM</span><span class="chip">ERP</span><span class="chip">MES</span><span class="chip">WMS</span><span class="chip">文档</span></div>
+    </div>
+    <article class="cap-detail" id="capDetail" aria-live="polite"></article>
+  </div>
+</section>
+
+<!-- 8 · one real task -->
+<section class="scene" data-scene="8" aria-label="第 8 章">
+  <header class="sc-head"><p class="kicker"><b>CH.08</b> · 跑一遍</p><h2>一个任务，在本体平台上怎么跑完</h2></header>
+  <div class="s8-body">
+    <div class="req"><span class="who">经理</span>本周延迟的订单，给客户一些补偿，安抚一下。</div>
+    <ol class="pipe" id="pipe">
+      <li class="stg"><span class="n">STEP 1</span><h4>理解</h4><p>“延迟订单” = 实际到货日晚于承诺交期的订单</p><span class="src">依据：本体里的定义</span></li>
+      <li class="stg"><span class="n">STEP 2</span><h4>查询</h4><p>沿着“订单 → 属于 → 客户”，找到 12 张延迟订单，涉及 9 位客户</p><span class="src">依据：对象与关系</span></li>
+      <li class="stg" id="st3"><span class="n">STEP 3</span><h4>校验</h4><p id="st3t"></p><span class="src">依据：规则与权限</span></li>
+      <li class="stg" id="st4"><span class="n">STEP 4</span><h4>执行</h4><p id="st4t"></p><span class="src">依据：标准动作</span></li>
+      <li class="stg" id="st5"><span class="n">STEP 5</span><h4>留痕</h4><p id="st5t"></p><span class="src">依据：审计日志</span></li>
+    </ol>
+    <div class="dial" data-in="5">
+      <label for="pct">补偿比例</label>
+      <input type="range" class="ix" id="pct" min="1" max="15" step="1" value="5">
+      <output id="pctOut" for="pct">5%</output>
+      <span class="tag ok" id="verdict">自动执行</span>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · summary -->
+<section class="scene" data-scene="9" aria-label="第 9 章">
+  <header class="sc-head"><p class="kicker"><b>CH.09</b> · 总结</p><h2>三句话记住</h2></header>
+  <div class="sum">
+    <div class="sum-card" data-in="1" style="--c:var(--onto)">
+      <svg class="glyph" viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="5" width="20" height="13" rx="2"/><rect x="24" y="30" width="20" height="13" rx="2"/><path d="M14 18v8h20v4"/></svg>
+      <h3>本体</h3><p class="role">规则书</p>
+      <p>定义有哪些概念、它们之间能有什么关系、要遵守什么规则。</p>
+    </div>
+    <div class="sum-card" data-in="2" style="--c:var(--kg-ink)">
+      <svg class="glyph" viewBox="0 0 48 48" aria-hidden="true"><path d="M10 12 24 25 38 10M24 25 9 38M24 25 40 38"/><circle class="f" cx="10" cy="12" r="4.5"/><circle class="f" cx="38" cy="10" r="4.5"/><circle class="f" cx="24" cy="25" r="4.5"/><circle class="f" cx="9" cy="38" r="4.5"/><circle class="f" cx="40" cy="38" r="4.5"/></svg>
+      <h3>知识图谱</h3><p class="role">事实网</p>
+      <p>按规则书记录下来的一条条具体事实：谁、和谁、发生了什么。</p>
+    </div>
+    <div class="sum-card" data-in="3" style="--c:var(--agent)">
+      <svg class="glyph" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 24 8 8M24 24 40 8M24 24 8 40M24 24 40 40M24 24V4M24 24v20"/><rect class="f" x="16" y="16" width="16" height="16" rx="4"/></svg>
+      <h3>本体平台</h3><p class="role">Agent 的企业中枢</p>
+      <p>统一语义、连接数据、定义动作、管住权限、全程留痕：让 Agent 看得懂、做得对、管得住。</p>
+    </div>
+  </div>
+  <div class="finale-row" data-in="4">
+    <p class="finale">大模型让 Agent 会思考，<span class="o">本体</span>让 Agent 懂企业。</p>
+    <button class="btn primary" id="replay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>重新播放</button>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+</div><!-- /stage -->
+
+<div class="captions">
+  <p class="cap-text" id="capText" aria-live="polite"></p>
+  <div class="cap-wait" id="capWait" hidden><span class="you">轮到你了</span><button class="btn primary" id="contBtn">继续播放<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
+</div>
+<div class="controls">
+  <button class="ic play" id="playBtn" aria-label="播放"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="playIcon" d="M8 5v14l11-7z"/></svg></button>
+  <button class="ic" id="prevBtn" aria-label="上一句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+  <button class="ic" id="nextBtn" aria-label="下一句"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+  <span class="time" id="time">00:00 / 00:00</span>
+  <div class="progress" id="prog" role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <div class="knob" id="knob"></div>
+  </div>
+  <div class="ctl-right">
+    <button class="pill-btn mono" id="rateBtn" aria-label="播放速度">1×</button>
+    <button class="pill-btn" id="voiceBtn" aria-pressed="false">旁白朗读</button>
+    <button class="ic" id="fsBtn" aria-label="全屏"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></svg></button>
+  </div>
+</div>
+<ol class="chapters" id="chapters" aria-label="章节"></ol>
+</div><!-- /player -->
+
+<details class="transcript" id="transcript">
+  <summary>查看全部旁白文稿</summary>
+  <div id="tsBody"></div>
+</details>
+<p class="foot">说明：页面里的公司、订单、规则编号和数字都是示意，用来讲清概念。快捷键：空格 播放/暂停，← → 上一句/下一句。</p>
+</div><!-- /wrap -->
+
+<script>
+/* 旁白脚本：每章一个场景；每行 [场景步骤, 字幕, 是否停下来等观众互动] */
+const CH = [
+  {t:'开场', L:[
+    [0,'欢迎！接下来这几分钟，我们用大白话讲清楚三件事：什么是本体，什么是知识图谱，以及为什么 Agent 进企业，需要一个本体平台。'],
+  ]},
+  {t:'AI 员工入职第一天', L:[
+    [1,'先想象一下：公司新招了一位 AI 员工，也就是 Agent。老板给它布置了第一个任务。'],
+    [1,'“华东区的大客户，这个月有几单延迟了？”听起来很简单，对吧？'],
+    [2,'Agent 打开公司的系统一看：客户信息在 CRM 里，订单在 ERP 里，物流记录在一张 Excel 表里。'],
+    [3,'麻烦来了：CRM 的 cust_id 和 ERP 的 cust_no 是同一个客户吗？“大客户”怎么算？“延迟”又是跟哪个日期比？'],
+    [4,'Agent 缺的不是智商，而是对这家公司业务的“理解”。要补上这一课，靠两样东西：本体，和知识图谱。'],
+  ]},
+  {t:'规则书与事实网', L:[
+    [0,'我们先用一所学校来打个比方。'],
+    [1,'第一步，说清楚学校里有哪些“类”东西：班级、学生、课程、老师。'],
+    [2,'第二步，说清楚它们之间可以有什么关系：学生属于班级，学生选修课程，老师讲授课程。'],
+    [3,'第三步，定下规矩：比如每门课程必须有老师讲授，每个学生只属于一个班级。'],
+    [3,'类、关系、规则，合在一起就是本体。它像一本“规则书”，只讲概念，不讲具体是谁。'],
+    [4,'接着，把具体的人和事按规则书填进去：小明属于三年二班，小明选修数学，王老师讲授数学。'],
+    [5,'每个具体的点，都能找到它“是一个”什么：小明是一个学生，数学是一门课程。这张由具体事实连成的网，就是知识图谱。'],
+    [6,'轮到你了：点“加入小刚”，看新事实怎么挂到本体上；再点“新增美术课”，看看规则会不会报警。',1],
+  ]},
+  {t:'一张表看懂区别', L:[
+    [0,'我们把两者放在一起比一比。'],
+    [1,'本体关心的是“概念和规则”；知识图谱关心的是“具体的事实”。'],
+    [2,'本体回答“客户是什么、客户和订单能有什么关系”；知识图谱回答“张三下了哪几张订单”。'],
+    [3,'规模上，本体通常是几十到几千个概念；知识图谱可以有上亿条事实。'],
+    [4,'变化上，本体像法律，改得慢、要商量；知识图谱像流水账，每天都在增加。'],
+    [5,'本体主要靠业务专家一起定义；知识图谱更多靠系统自动采集和抽取。比如 Schema.org 是本体，Wikidata 是知识图谱。'],
+    [6,'一句话：本体是地图的图例，知识图谱是按图例画出来的地图。两者配合，才是完整的知识。'],
+    [7,'来做个小测验：判断下面每句话，属于本体，还是知识图谱？',1],
+  ]},
+  {t:'从亚里士多德到 Agent', L:[
+    [0,'这两个概念不是凭空出现的，背后有一段很长的历史。'],
+    [1,'两千多年前，亚里士多德就在思考：世界上的东西可以分成哪几大类？这就是哲学里的“本体论”。'],
+    [2,'1735 年，林奈用“界、纲、目、属、种”给生物分类。层层归类的思想，今天的本体还在用。'],
+    [3,'上世纪 60 年代，计算机科学家开始用“节点加连线”的语义网络表示知识，这是知识图谱最早的样子。'],
+    [4,'70、80 年代的专家系统，把专家经验写成一条条规则。可全靠人工录入，又贵又难扩展。'],
+    [5,'1993 年，Gruber 给出了计算机领域的经典定义：本体，是对概念体系的明确规范。'],
+    [6,'2000 年前后，W3C 推出 RDF、OWL 等语义网标准，希望机器也能读懂网页的含义。'],
+    [7,'2007 年起，DBpedia、Freebase 等项目从维基百科等来源自动抽取出海量事实。'],
+    [8,'2012 年，谷歌发布知识图谱，口号是“是事物，不是字符串”。“知识图谱”这个词从此走红。'],
+    [9,'2010 年代，金融、医疗、制造企业纷纷建设领域图谱，也出现了把本体做成企业业务中枢的平台。'],
+    [10,'2022 年底，大模型爆发。机器第一次能流畅地理解和生成语言。'],
+    [11,'而今天，Agent 不只要回答问题，还要真正去办事。本体，又一次站到了舞台中央。'],
+    [11,'你可以点击时间轴上的任意节点，回看每个阶段。',1],
+  ]},
+  {t:'大模型为什么还不够', L:[
+    [0,'有人会问：大模型已经读过整个互联网了，还需要本体吗？'],
+    [1,'大模型懂通用常识，却不懂你们公司的“行话”。比如问它：上个月的活跃客户有多少？'],
+    [2,'在公司里，销售说 90 天内下过单才算活跃，财务说有未结清账款才算，客服说 30 天内提过工单才算。'],
+    [3,'没有本体，Agent 只能自己猜口径。同一个问题问两次，可能得到两个不同的数字，而且说不清出处。'],
+    [4,'接入本体后，“活跃客户”有了全公司统一、经过确认的定义。Agent 按定义去查，每一步都能追溯。'],
+    [5,'可以这样记：大模型是会思考的大脑，知识图谱是记忆，本体是企业的常识和规矩。'],
+    [5,'切换“不接本体”和“接入本体”，对比一下两个答案。',1],
+  ]},
+  {t:'多个 Agent，一团乱麻', L:[
+    [0,'再看企业里的真实情况：通常不止一个 Agent，也不止一个系统。'],
+    [1,'比如客服、供应链、财务三个 Agent，要对接 CRM、ERP、MES、仓储和文档五类系统。'],
+    [2,'如果每个 Agent 各自对接、各自理解数据，就要 3 乘 5，一共 15 条对接线。每多一个 Agent，乱麻就更乱。'],
+    [3,'有了本体平台做中枢，Agent 只对接本体，本体再统一连接系统：3 加 5，只要 8 条，而且大家说同一种语言。'],
+    [3,'点“再加一个 Agent”，比比两种架构的差别。',1],
+  ]},
+  {t:'本体平台的五种能力', L:[
+    [0,'那么，一个本体平台具体要提供哪些能力？我们拆成五块来看。'],
+    [1,'第一，语义统一。把各系统里叫法不同的数据，统一成“客户”“订单”这样的业务对象。'],
+    [2,'第二，数据连接。本体对象直接连到业务系统的实时数据，知识图谱跟着业务一起更新。'],
+    [3,'第三，动作建模。把“改交期”“发优惠券”定义成标准的业务动作。Agent 调用动作，而不是直接改数据库。'],
+    [4,'第四，规则与权限。谁能看什么、哪些操作要审批、额度上限多少，都写进本体，对每个 Agent 同样生效。'],
+    [5,'第五，追溯与审计。每个回答都能指回依据，每次操作都有记录，出了问题说得清。'],
+  ]},
+  {t:'一个任务怎么跑完', L:[
+    [0,'最后，看一个任务在本体平台上是怎么跑完的。经理对 Agent 说：本周延迟的订单，给客户一些补偿。'],
+    [1,'第一步，理解。本体告诉 Agent：“延迟订单”就是实际到货晚于承诺交期的订单。'],
+    [2,'第二步，查询。沿着订单到客户的关系，找到 12 张延迟订单，涉及 9 位客户。'],
+    [3,'第三步，校验。规则规定：补偿不超过订单金额的 5% 可以自动执行，超过就要经理审批。'],
+    [4,'第四步，执行。Agent 调用“发放优惠券”这个标准动作，结果写回 CRM。'],
+    [5,'第五步，留痕。谁发起的、依据哪条规则、改了哪些数据，全部记录在案。'],
+    [5,'拖动补偿比例试试：超过 5% 或 10% 时，流程会怎么变？',1],
+  ]},
+  {t:'三句话记住', L:[
+    [1,'总结一下。本体是“规则书”：定义有哪些概念、它们能有什么关系、要守什么规则。'],
+    [2,'知识图谱是“事实网”：按规则书记录下来的一条条具体事实。'],
+    [3,'本体平台是 Agent 在企业里的“中枢”：让它看得懂、做得对、管得住。'],
+    [4,'大模型让 Agent 会思考，本体让 Agent 懂企业。谢谢观看！'],
+  ]},
+];
+
+const ERAS = [
+  {n:'哲学与分类', a:0, b:2}, {n:'符号 AI', a:2, b:5}, {n:'语义网', a:5, b:6},
+  {n:'知识图谱', a:6, b:9}, {n:'大模型与 Agent', a:9, b:11},
+];
+const TL = [
+  {y:'约前350', yl:'约公元前 350 年', n:'亚里士多德', h:'亚里士多德《范畴篇》', d:'他把世界上的东西分成“实体、数量、性质、关系”等十个范畴。哲学里的“本体论（Ontology）”，研究的就是“世界上到底有什么”。'},
+  {y:'1735', yl:'1735 年', n:'林奈分类', h:'林奈《自然系统》', d:'用“界、纲、目、属、种”层层归类生物。“大类包含小类”的思路，就是今天本体里“类—子类”的原型。'},
+  {y:'1960s', yl:'1960 年代', n:'语义网络', h:'语义网络', d:'研究者（如 Quillian）用“节点 + 连线”表示概念之间的关系，让计算机模拟人的联想记忆。这是知识图谱最早的样子。'},
+  {y:'1970–80s', yl:'1970–1980 年代', n:'专家系统', h:'专家系统与 Cyc', d:'MYCIN 等专家系统把医生的经验写成几百条规则；1984 年启动的 Cyc 项目，尝试手工录入人类常识。问题也很明显：全靠人工，又贵又难扩展。'},
+  {y:'1993', yl:'1993 年', n:'Gruber 定义', h:'Gruber 的经典定义', d:'“本体是对概念化的明确规范。”这句话让“本体”从哲学词汇，变成了计算机工程里的术语。'},
+  {y:'1999–2004', yl:'1999–2004 年', n:'语义网标准', h:'RDF、OWL 与语义网', d:'W3C 发布 RDF（1999）和 OWL（2004）等标准。2001 年，蒂姆·伯纳斯-李提出“语义网”愿景：让机器也能读懂网页上的含义。'},
+  {y:'2007', yl:'2007 年', n:'开放知识库', h:'DBpedia、Freebase、YAGO', d:'这些项目从维基百科等来源自动抽取事实，知识的规模从“人工写几千条”跃升到“机器抽取上亿条”。'},
+  {y:'2012', yl:'2012 年', n:'谷歌知识图谱', h:'谷歌知识图谱', d:'口号是“Things, not strings（是事物，不是字符串）”。搜索开始理解“实体”，“知识图谱”一词走红。前一年，Schema.org 已为网页提供了一套通用本体。'},
+  {y:'2010s', yl:'2010 年代', n:'企业本体平台', h:'企业图谱与本体平台', d:'金融风控、医疗、制造等行业建设领域知识图谱；以 Palantir 为代表的平台，把“本体”做成连接数据、分析与业务操作的企业中枢。'},
+  {y:'2022', yl:'2022 年', n:'大模型', h:'大模型爆发', d:'ChatGPT 让机器第一次能流畅地理解和生成语言。随后，GraphRAG 等方法开始把图谱接给大模型，用事实减少“幻觉”。'},
+  {y:'2024–', yl:'2024 年至今', n:'Agent', h:'Agent 时代', d:'Agent 不只回答问题，还要调用工具、执行业务动作。MCP 等协议让 Agent 更容易连上系统，而本体负责告诉它：这些数据和动作在业务上意味着什么、能不能做。'},
+];
+
+const QUIZ = [
+  ['“员工”是一种“人”', 'onto', '这是在说“类”和“类”之间的上下级关系，属于本体。'],
+  ['张伟是市场部的员工', 'kg', '具体的人、具体的部门，这是一条事实，属于知识图谱。'],
+  ['每张订单必须关联一个客户', 'onto', '这是一条约束所有订单的规则，属于本体。'],
+  ['订单 SO-88231 在 9 月 16 日到货', 'kg', '具体订单的具体事件，属于知识图谱。'],
+  ['供应商和物料之间可以有“供应”关系', 'onto', '规定了两类东西之间“可以有”的关系，属于本体。'],
+  ['华东一厂供应电芯 X12', 'kg', '具体工厂和具体物料之间的关系，属于知识图谱。'],
+];
+
+const CAPS = [
+  {t:'语义统一', s:'共同语言', d:'把各系统里叫法不同的数据，统一成业务人员认识的对象：客户、订单、物料、工厂。', e:'CRM 的 cust_id、ERP 的 cust_no、Excel 里的“买方”，统一成同一个「客户」。'},
+  {t:'数据连接', s:'活的事实', d:'对象和关系直接映射到业务系统的实时数据，知识图谱随业务变化持续更新，而不是一份过期的拷贝。', e:'ERP 里订单状态一改，「订单」对象马上同步，Agent 看到的就是最新的。'},
+  {t:'动作建模', s:'能办事', d:'把业务操作定义成带参数、校验和回写的标准动作。Agent 调用动作，而不是直接改数据库。', e:'「调整交期」动作：参数是订单和新日期；校验“不能早于今天”；结果写回 ERP。'},
+  {t:'规则与权限', s:'守规矩', d:'谁能看哪些对象、哪些动作需要审批、额度上限是多少，统一写进本体，对每个 Agent 同样生效。', e:'财务 Agent 看不到员工薪资；补偿超过订单金额 5% 需要经理审批。'},
+  {t:'追溯与审计', s:'说得清', d:'每个回答能指回用了哪些对象和规则；每次动作都记录谁发起、何时、依据什么。', e:'“为什么给这位客户发券？”→ 规则 R-12 + 订单 SO-88231 延迟 4 天。'},
+];
+</script>
+
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = s => { s = Math.max(0, Math.round(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+
+/* ---------- timeline of lines ---------- */
+const LINES = [];
+CH.forEach((c, ci) => c.L.forEach(([step, text, wait]) => LINES.push({ci, step, text, wait: !!wait})));
+let acc = 0;
+LINES.forEach(l => { l.d = Math.max(3.2, [...l.text].length / 5.2 + 0.9); l.start = acc; acc += l.d; });
+const TOTAL = acc;
+CH.forEach((c, ci) => {
+  c.first = LINES.findIndex(l => l.ci === ci);
+  c.start = LINES[c.first].start;
+  c.dur = LINES.filter(l => l.ci === ci).reduce((s, l) => s + l.d, 0);
+});
+const mins = Math.round(TOTAL / 60);
+$('#durLabel').textContent = $('#coverDur').textContent = `约 ${mins} 分钟`;
+
+const scenes = $$('.scene');
+const capText = $('#capText'), capWait = $('#capWait');
+const playBtn = $('#playBtn'), playIcon = $('#playIcon');
+const prog = $('#prog'), fill = $('#fill'), knob = $('#knob'), timeEl = $('#time');
+const chapList = $('#chapters');
+const toastEl = $('#toast');
+
+let cur = 0, t = 0, playing = false, waiting = false, ended = false, rate = 1;
+let curScene = 0;
+const lastStep = {};
+
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.classList.add('show');
+  clearTimeout(toast.h); toast.h = setTimeout(() => toastEl.classList.remove('show'), 2400);
+}
+
+/* ---------- captions ---------- */
+const KW = /(本体平台|本体论|本体|知识图谱|Agent)/g;
+const markup = s => esc(s).replace(KW, m => `<span class="${m === '知识图谱' ? 'k-kg' : m === 'Agent' ? 'k-agent' : 'k-onto'}">${m}</span>`);
+let capTimer;
+function setCaption(text, instant) {
+  clearTimeout(capTimer);
+  if (instant) { capText.innerHTML = markup(text); capText.classList.remove('fade'); return; }
+  capText.classList.add('fade');
+  capTimer = setTimeout(() => { capText.innerHTML = markup(text); capText.classList.remove('fade'); }, 150);
+}
+
+/* ---------- scenes & steps ---------- */
+const HOOKS = {};
+function showScene(ci) {
+  if (ci === curScene) return false;
+  scenes.forEach((s, i) => s.classList.toggle('active', i === ci));
+  curScene = ci;
+  return true;
+}
+function applyStep(ci, step, force) {
+  const sc = scenes[ci];
+  sc.dataset.step = step;
+  $$('[data-in]', sc).forEach(el => el.classList.toggle('on', +el.dataset.in <= step));
+  if (force || lastStep[ci] !== step) { lastStep[ci] = step; HOOKS[ci] && HOOKS[ci](step); }
+}
+function render(instant) {
+  const l = LINES[cur];
+  const entered = showScene(l.ci);
+  applyStep(l.ci, l.step, entered || instant);
+  setCaption(l.text, instant);
+  capWait.hidden = !waiting;
+  chapList.querySelectorAll('.ch').forEach((b, i) => {
+    b.setAttribute('aria-current', i === l.ci ? 'true' : 'false');
+    b.classList.toggle('done', i < l.ci);
+  });
+  $$('#tsBody li').forEach(li => li.classList.toggle('cur', +li.dataset.i === cur));
+}
+
+/* ---------- voice (Web Speech, optional) ---------- */
+const synth = window.speechSynthesis || null;
+let voiceOn = false, zhVoice = null, utterDone = false, voiceErr = false, curU = null;
+function pickVoice() {
+  if (!synth) return;
+  const vs = synth.getVoices();
+  zhVoice = vs.find(v => /zh[-_]CN/i.test(v.lang) && /xiaoxiao|yunxi|tingting|google/i.test(v.name))
+    || vs.find(v => /zh[-_](CN|Hans)/i.test(v.lang)) || vs.find(v => /^zh/i.test(v.lang)) || null;
+}
+if (synth) { pickVoice(); synth.addEventListener && synth.addEventListener('voiceschanged', pickVoice); }
+function speakCurrent() {
+  utterDone = false; voiceErr = false;
+  if (!voiceOn || !synth) return;
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(LINES[cur].text.replace(/[“”「」]/g, ''));
+  u.lang = 'zh-CN'; if (zhVoice) u.voice = zhVoice;
+  u.rate = Math.min(2, rate * 1.05);
+  u.onend = () => { if (curU === u) utterDone = true; };
+  u.onerror = e => { if (curU === u && e.error !== 'interrupted' && e.error !== 'canceled') voiceErr = true; };
+  curU = u;
+  synth.speak(u);
+}
+function stopVoice() { curU = null; if (synth) synth.cancel(); }
+
+/* ---------- transport ---------- */
+function updatePlayBtn() {
+  playIcon.setAttribute('d', playing ? 'M7 5h4v14H7zm6 0h4v14h-4z' : 'M8 5v14l11-7z');
+  playBtn.setAttribute('aria-label', playing ? '暂停' : ended ? '重新播放' : '播放');
+}
+function goTo(i, offset = 0) {
+  cur = Math.max(0, Math.min(LINES.length - 1, i));
+  t = offset; waiting = false; ended = false;
+  render();
+  if (playing) speakCurrent();
+}
+function advance() {
+  const l = LINES[cur];
+  if (l.wait) { playing = false; waiting = true; t = l.d; capWait.hidden = false; stopVoice(); updatePlayBtn(); return; }
+  if (cur >= LINES.length - 1) { playing = false; ended = true; t = l.d; stopVoice(); updatePlayBtn(); return; }
+  goTo(cur + 1);
+}
+function play() {
+  if (ended) { playing = true; goTo(0); updatePlayBtn(); return; }
+  playing = true;
+  if (waiting) { waiting = false; capWait.hidden = true; if (cur < LINES.length - 1) goTo(cur + 1); else { ended = true; playing = false; } }
+  else speakCurrent();
+  updatePlayBtn();
+}
+function pause() { playing = false; stopVoice(); updatePlayBtn(); }
+const toggle = () => playing ? pause() : play();
+
+playBtn.addEventListener('click', toggle);
+$('#bigPlay').addEventListener('click', play);
+$('#contBtn').addEventListener('click', play);
+$('#prevBtn').addEventListener('click', () => (t > 2 && !waiting) ? goTo(cur, 0) : goTo(cur - 1));
+$('#nextBtn').addEventListener('click', () => goTo(cur + 1));
+$('#replay').addEventListener('click', () => { playing = true; goTo(0); updatePlayBtn(); });
+
+const RATES = [1, 1.25, 1.5, 0.75];
+$('#rateBtn').addEventListener('click', e => {
+  rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length];
+  e.currentTarget.textContent = rate + '×';
+  if (playing && voiceOn) speakCurrent();
+});
+$('#voiceBtn').addEventListener('click', e => {
+  if (!synth) { toast('这个浏览器不支持语音朗读，可以看字幕'); return; }
+  voiceOn = !voiceOn;
+  e.currentTarget.setAttribute('aria-pressed', voiceOn);
+  if (voiceOn) {
+    pickVoice();
+    if (!zhVoice) toast('没找到中文语音，将用系统默认语音朗读');
+    if (playing) { t = 0; speakCurrent(); }
+  } else stopVoice();
+});
+const fsBtn = $('#fsBtn'), player = $('#player');
+fsBtn.hidden = !document.fullscreenEnabled;
+fsBtn.addEventListener('click', () => {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else player.requestFullscreen().catch(() => toast('当前环境无法全屏'));
+});
+
+/* pause while the viewer plays with a control, like a video would */
+document.addEventListener('click', e => {
+  if (playing && e.target.closest('.scene .ix')) { pause(); toast('已暂停，玩够了点 ▶ 继续'); }
+});
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input, textarea, select')) return;
+  const onButton = e.target.closest('button, summary');
+  if (e.code === 'Space' && !onButton) { e.preventDefault(); toggle(); }
+  else if (e.key === 'ArrowRight' && e.target !== prog) goTo(cur + 1);
+  else if (e.key === 'ArrowLeft' && e.target !== prog) goTo(cur - 1);
+});
+
+/* ---------- progress bar ---------- */
+CH.forEach((c, i) => { if (i) { const k = document.createElement('span'); k.className = 'tick'; k.style.left = (c.start / TOTAL * 100) + '%'; prog.appendChild(k); } });
+function seekTo(clientX) {
+  const r = prog.getBoundingClientRect();
+  const g = Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * TOTAL;
+  let i = LINES.findIndex(l => g < l.start + l.d); if (i < 0) i = LINES.length - 1;
+  if (i !== cur) goTo(i, g - LINES[i].start); else t = g - LINES[i].start;
+}
+let dragging = false;
+prog.addEventListener('pointerdown', e => { dragging = true; prog.setPointerCapture(e.pointerId); seekTo(e.clientX); });
+prog.addEventListener('pointermove', e => { if (dragging) seekTo(e.clientX); });
+prog.addEventListener('pointerup', () => { dragging = false; });
+prog.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') { e.preventDefault(); goTo(cur + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(cur - 1); }
+});
+function updateProgress() {
+  const l = LINES[cur];
+  const g = ended ? TOTAL : l.start + Math.min(t, l.d);
+  const p = g / TOTAL * 100;
+  fill.style.width = p + '%'; knob.style.left = p + '%';
+  prog.setAttribute('aria-valuenow', Math.round(p));
+  prog.setAttribute('aria-valuetext', fmt(g));
+  timeEl.textContent = fmt(g) + ' / ' + fmt(TOTAL);
+}
+
+/* ---------- chapters & transcript ---------- */
+chapList.innerHTML = CH.map((c, i) =>
+  `<li><button class="ch" data-ch="${i}"><span class="n">${String(i).padStart(2, '0')}</span><span>${esc(c.t)}</span><span class="dur">${fmt(c.dur)}</span></button></li>`).join('');
+chapList.addEventListener('click', e => { const b = e.target.closest('.ch'); if (b) goTo(CH[+b.dataset.ch].first); });
+$('#tsBody').innerHTML = CH.map((c, ci) =>
+  `<h3>${String(ci).padStart(2, '0')} · ${esc(c.t)}</h3><ol>` +
+  LINES.map((l, i) => l.ci === ci ? `<li data-i="${i}"><button class="tline" data-i="${i}">${esc(l.text)}</button></li>` : '').join('') + '</ol>').join('');
+$('#tsBody').addEventListener('click', e => {
+  const b = e.target.closest('.tline'); if (!b) return;
+  goTo(+b.dataset.i); $('#stage').scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'center'});
+});
+
+/* ---------- main loop ---------- */
+let lastTs = 0;
+function frame(ts) {
+  const dt = lastTs ? Math.min(0.1, (ts - lastTs) / 1000) : 0; lastTs = ts;
+  if (playing && !dragging) {
+    const l = LINES[cur];
+    t += dt * rate;
+    const useVoice = voiceOn && synth && !voiceErr;
+    const done = useVoice ? ((utterDone && t >= 0.6) || t >= l.d * 2 + 3) : t >= l.d;
+    if (done) advance();
+  }
+  updateProgress();
+  if (curScene === 0) drawCover();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- cover: drifting graph ---------- */
+const cv = $('#coverCv'), cx = cv.getContext('2d');
+let W = 0, H = 0, nodes = [], colors = null, colorAge = 0;
+function sizeCover() {
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!nodes.length) nodes = Array.from({length: 36}, (_, i) => ({
+    x: Math.random(), y: Math.random(), vx: (Math.random() - .5) * 0.00022, vy: (Math.random() - .5) * 0.00022,
+    o: i % 3 === 0, r: 3 + Math.random() * 3.5}));
+  if (reduceMotion) drawCover(true);
+}
+function drawCover(force) {
+  if (!W || (reduceMotion && !force)) return;
+  if (!colors || ++colorAge > 90) {
+    const cs = getComputedStyle(document.documentElement); colorAge = 0;
+    colors = {o: cs.getPropertyValue('--onto').trim(), k: cs.getPropertyValue('--kg').trim(), m: cs.getPropertyValue('--muted').trim()};
+  }
+  cx.clearRect(0, 0, W, H);
+  const lim = Math.min(W, H) * 0.3;
+  cx.lineWidth = 1;
+  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+    const a = nodes[i], b = nodes[j], d = Math.hypot((a.x - b.x) * W, (a.y - b.y) * H);
+    if (d < lim) { cx.globalAlpha = (1 - d / lim) * 0.35; cx.strokeStyle = colors.m; cx.beginPath(); cx.moveTo(a.x * W, a.y * H); cx.lineTo(b.x * W, b.y * H); cx.stroke(); }
+  }
+  cx.globalAlpha = 0.9;
+  nodes.forEach(n => {
+    if (!reduceMotion) { n.x += n.vx; n.y += n.vy; if (n.x < 0 || n.x > 1) n.vx *= -1; if (n.y < 0 || n.y > 1) n.vy *= -1; }
+    const x = n.x * W, y = n.y * H;
+    if (n.o) { cx.strokeStyle = colors.o; cx.lineWidth = 2; cx.strokeRect(x - n.r * 1.4, y - n.r, n.r * 2.8, n.r * 2); cx.lineWidth = 1; }
+    else { cx.fillStyle = colors.k; cx.beginPath(); cx.arc(x, y, n.r, 0, Math.PI * 2); cx.fill(); }
+  });
+  cx.globalAlpha = 1;
+}
+new ResizeObserver(sizeCover).observe(cv);
+
+/* ---------- 1 · agent confused ---------- */
+HOOKS[1] = step => $('#bot').classList.toggle('confused', step >= 3);
+
+/* ---------- 2 · school: view toggle & rule check ---------- */
+const s2 = $('#s2svg'), rule1 = $('#rule1'), rule1st = $('#rule1st'), fixArt = $('#fixArt');
+function s2Rules() {
+  const bad = s2.classList.contains('has-art') && !s2.classList.contains('art-fixed');
+  rule1.classList.toggle('bad', bad);
+  rule1st.textContent = bad ? '✕ 违反：“美术”没有老师讲授' : '✓ 全部满足';
+  fixArt.hidden = !bad;
+}
+function s2View(v) {
+  s2.dataset.view = v;
+  $$('[data-view]', scenes[2]).forEach(b => { if (b.tagName === 'BUTTON') b.setAttribute('aria-pressed', b.dataset.view === v); });
+}
+function s2Reset() { s2.classList.remove('has-gang', 'has-art', 'art-fixed'); s2View('all'); s2Rules(); }
+$$('.seg [data-view]', scenes[2]).forEach(b => b.addEventListener('click', () => s2View(b.dataset.view)));
+$('#addStu').addEventListener('click', () => { s2.classList.add('has-gang'); s2View('all'); toast('小刚“是一个”学生，自动继承学生的关系和规则'); });
+$('#addArt').addEventListener('click', () => { s2.classList.add('has-art'); s2.classList.remove('art-fixed'); s2View('all'); s2Rules(); });
+fixArt.addEventListener('click', () => { s2.classList.add('art-fixed'); s2Rules(); toast('规则 ① 重新满足'); });
+$('#resetS2').addEventListener('click', s2Reset);
+HOOKS[2] = step => { if (step < 6) s2Reset(); };
+
+/* ---------- 3 · quiz ---------- */
+const quiz = $('#quiz'), qText = $('#qText'), qFb = $('#qFb'), qBtns = $('#qBtns'), qNext = $('#qNext'), qDots = $('#qDots'), qNum = $('#qNum'), quizOpen = $('#quizOpen');
+let qi = 0, qRes = [];
+function qRender() {
+  qDots.innerHTML = QUIZ.map((_, i) => `<i class="${qRes[i] === true ? 'ok' : qRes[i] === false ? 'no' : ''}"></i>`).join('');
+  if (qi >= QUIZ.length) {
+    const score = qRes.filter(Boolean).length;
+    qNum.textContent = '完成';
+    qText.textContent = `你答对了 ${score} / ${QUIZ.length} 题`;
+    qFb.textContent = score === QUIZ.length ? '满分！你已经分得清了。' : '口诀：讲“类和规则”的是本体，讲“具体谁、具体什么”的是知识图谱。';
+    qBtns.hidden = true; qNext.textContent = '再做一次'; qNext.disabled = false;
+    return;
+  }
+  qNum.textContent = `${qi + 1} / ${QUIZ.length}`;
+  qText.textContent = QUIZ[qi][0];
+  qFb.textContent = '';
+  qBtns.hidden = false;
+  $$('button', qBtns).forEach(b => { b.disabled = false; b.classList.remove('right', 'wrong'); });
+  qNext.textContent = qi === QUIZ.length - 1 ? '看结果' : '下一题'; qNext.disabled = true;
+}
+function qReset() { qi = 0; qRes = []; qRender(); }
+qBtns.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const [, ans, why] = QUIZ[qi], ok = b.dataset.ans === ans;
+  qRes[qi] = ok;
+  $$('button', qBtns).forEach(x => { x.disabled = true; if (x.dataset.ans === ans) x.classList.add('right'); else if (x === b) x.classList.add('wrong'); });
+  qFb.innerHTML = `<b class="${ok ? 'ok' : 'no'}">${ok ? '答对了' : '不对哦'}</b>　${esc(why)}`;
+  qNext.disabled = false;
+  qDots.children[qi].className = ok ? 'ok' : 'no';
+});
+qNext.addEventListener('click', () => { if (qi >= QUIZ.length) qReset(); else { qi++; qRender(); } });
+$('#qClose').addEventListener('click', () => { quiz.classList.add('dismiss'); quizOpen.hidden = false; });
+quizOpen.addEventListener('click', () => { quiz.classList.remove('dismiss'); quizOpen.hidden = true; });
+HOOKS[3] = step => { if (step < 7) { qReset(); quiz.classList.remove('dismiss'); quizOpen.hidden = true; } };
+qReset();
+
+/* ---------- 4 · history timeline ---------- */
+const tlTrack = $('#tlTrack'), tlDetail = $('#tlDetail');
+$('#tlEras').innerHTML = ERAS.map((e, i) => `<span data-era="${i}" style="grid-column:${e.a + 1} / ${e.b + 1}">${esc(e.n)}</span>`).join('');
+tlTrack.innerHTML = TL.map((n, i) =>
+  `<li><button class="tl-node ix" data-i="${i}" data-in="${i + 1}"><span class="dot"></span><span class="yr">${esc(n.y)}</span><span class="nm">${esc(n.n)}</span></button></li>`).join('');
+const eraOf = i => ERAS.findIndex(e => i >= e.a && i < e.b);
+function tlSelect(i) {
+  $$('.tl-node', tlTrack).forEach(b => b.classList.toggle('cur', +b.dataset.i === i));
+  $$('#tlEras span').forEach(s => s.classList.toggle('cur', i >= 0 && +s.dataset.era === eraOf(i)));
+  if (i < 0) {
+    tlDetail.innerHTML = `<div class="tl-meta"><span class="era-chip">约 2300 年</span></div><h3>一条很长的线</h3><p class="tl-text">时间轴会依次点亮。先是哲学家给世界分类，再是计算机学会表示知识，最后轮到大模型和 Agent。</p>`;
+  } else {
+    const n = TL[i];
+    tlDetail.innerHTML = `<div class="tl-meta"><span class="era-chip">${esc(ERAS[eraOf(i)].n)}</span><span class="tl-year">${esc(n.yl)}</span></div><h3>${esc(n.h)}</h3><p class="tl-text">${esc(n.d)}</p>`;
+  }
+  tlDetail.classList.remove('swap'); void tlDetail.offsetWidth; tlDetail.classList.add('swap');
+}
+tlTrack.addEventListener('click', e => { const b = e.target.closest('.tl-node'); if (b) tlSelect(+b.dataset.i); });
+HOOKS[4] = step => tlSelect(step - 1);
+
+/* ---------- 5 · with / without ontology ---------- */
+const ans = $('#ans');
+function setAns(m) { ans.dataset.mode = m; $$('.seg button', ans).forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m)); }
+$$('.seg button', ans).forEach(b => b.addEventListener('click', () => setAns(b.dataset.mode)));
+HOOKS[5] = step => setAns(step >= 4 ? 'yes' : 'no');
+
+/* ---------- 6 · mesh vs hub ---------- */
+const s6 = $('#s6svg'), NS = 'http://www.w3.org/2000/svg';
+const AG = [{n:'客服 Agent', y:90}, {n:'供应链 Agent', y:190}, {n:'财务 Agent', y:290}, {n:'销售 Agent', y:390, a4:true}];
+const SY = [{n:'CRM', y:70}, {n:'ERP', y:150}, {n:'MES', y:230}, {n:'WMS 仓储', y:310}, {n:'文档 / 邮件', y:390}];
+const svgEl = (tag, attrs, parent) => { const el = document.createElementNS(NS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); parent.appendChild(el); return el; };
+const wire = (d, parent, a4, delay) => { const p = svgEl('path', {d, class: 'wire' + (a4 ? ' a4' : ''), pathLength: 1}, parent); p.style.transitionDelay = delay + 'ms'; };
+let wi = 0;
+AG.forEach(a => SY.forEach(s => wire(`M190 ${a.y} C 400 ${a.y}, 410 ${s.y}, 620 ${s.y}`, $('#s6mesh'), a.a4, (wi++) * 35)));
+AG.forEach((a, i) => wire(`M190 ${a.y} C 250 ${a.y}, 262 230, 310 230`, $('#s6hubw'), a.a4, i * 60));
+SY.forEach((s, i) => wire(`M490 230 C 550 230, 562 ${s.y}, 620 ${s.y}`, $('#s6hubw'), false, 250 + i * 60));
+AG.forEach(a => { const g = svgEl('g', {class: 'agt' + (a.a4 ? ' a4' : '')}, $('#s6nodes')); svgEl('rect', {x: 30, y: a.y - 22, width: 160, height: 44, rx: 22}, g); svgEl('text', {x: 110, y: a.y + 7, 'text-anchor': 'middle'}, g).textContent = a.n; });
+SY.forEach(s => { const g = svgEl('g', {class: 'sysn'}, $('#s6nodes')); svgEl('rect', {x: 620, y: s.y - 22, width: 160, height: 44, rx: 8}, g); svgEl('text', {x: 700, y: s.y + 6, 'text-anchor': 'middle'}, g).textContent = s.n; });
+const plusBtn = $('#plusBtn'), cnt = $('#count');
+function s6Count() {
+  const n = s6.classList.contains('plus') ? 4 : 3, hub = s6.dataset.mode === 'hub';
+  $('#cntN').textContent = hub ? n + 5 : n * 5;
+  $('#cntF').textContent = hub ? `${n} 个 Agent + 5 类系统` : `${n} 个 Agent × 5 类系统`;
+  cnt.classList.toggle('hub', hub);
+}
+function s6Mode(m) {
+  s6.dataset.mode = m;
+  $$('.seg button', scenes[6]).forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+  s6Count();
+}
+function s6Plus(on) { s6.classList.toggle('plus', on); plusBtn.textContent = on ? '去掉销售 Agent' : '再加一个 Agent'; s6Count(); }
+$$('.seg button', scenes[6]).forEach(b => b.addEventListener('click', () => s6Mode(b.dataset.mode)));
+plusBtn.addEventListener('click', () => {
+  const on = !s6.classList.contains('plus'); s6Plus(on);
+  if (on) toast(s6.dataset.mode === 'hub' ? '走本体平台：只多了 1 条线' : '点对点：一下多了 5 条线');
+});
+HOOKS[6] = step => { s6Mode(step >= 3 ? 'hub' : step >= 2 ? 'mesh' : 'none'); if (step < 3) s6Plus(false); };
+
+/* ---------- 7 · capabilities ---------- */
+const capsEl = $('#caps'), capDetail = $('#capDetail');
+capsEl.innerHTML = CAPS.map((c, i) => `<button class="cap ix" data-i="${i}"><span class="n">0${i + 1}</span><span class="t">${esc(c.t)}</span></button>`).join('');
+function capSelect(i, seenUpTo) {
+  $$('.cap', capsEl).forEach((b, j) => { b.classList.toggle('cur', j === i); if (seenUpTo !== undefined) b.classList.toggle('seen', j <= seenUpTo); });
+  if (i < 0) {
+    capDetail.innerHTML = `<p class="sub">本体平台 = 夹在 Agent 和业务系统之间的一层</p><p class="big">五种能力</p><p>Agent 通过这一层来理解业务、查询事实、执行动作。下面逐个点亮。</p>`;
+  } else {
+    const c = CAPS[i];
+    capDetail.innerHTML = `<p class="sub">能力 0${i + 1} / 05</p><p class="big">${esc(c.t)}<span>${esc(c.s)}</span></p><p>${esc(c.d)}</p><p class="eg">${esc(c.e)}</p>`;
+  }
+  capDetail.classList.remove('swap'); void capDetail.offsetWidth; capDetail.classList.add('swap');
+}
+capsEl.addEventListener('click', e => { const b = e.target.closest('.cap'); if (b) { b.classList.add('seen'); capSelect(+b.dataset.i); } });
+HOOKS[7] = step => capSelect(step - 1, step - 1);
+
+/* ---------- 8 · task pipeline ---------- */
+const pct = $('#pct'), stgs = $$('#pipe .stg');
+function s8Update() {
+  const v = +pct.value, lvl = v <= 5 ? 'ok' : v <= 10 ? 'warn' : 'stop';
+  $('#pctOut').textContent = v + '%';
+  $('#st3t').textContent = {ok: `补偿 ${v}% ≤ 5%：规则 R-12 允许自动执行`, warn: `补偿 ${v}% > 5%：按规则 R-12，需要客服经理审批`, stop: `补偿 ${v}% > 10%：超出上限 R-13，禁止执行`}[lvl];
+  $('#st4t').textContent = {ok: '调用「发放优惠券」动作，9 张券写回 CRM', warn: '先生成审批单，经理确认后再调用动作', stop: '不执行动作，向经理说明原因和替代方案'}[lvl];
+  $('#st5t').textContent = {ok: '记录发起人、规则 R-12、9 位客户和执行时间', warn: '记录发起人、审批人、规则 R-12 和审批结论', stop: '记录被拦下的请求和触发的规则 R-13'}[lvl];
+  ['st3', 'st4'].forEach(id => { const el = $('#' + id); el.classList.toggle('warn', lvl === 'warn'); el.classList.toggle('stop', lvl === 'stop'); });
+  const vd = $('#verdict');
+  vd.textContent = {ok: '自动执行', warn: '需经理审批', stop: '禁止执行'}[lvl];
+  vd.className = 'tag ' + (lvl === 'ok' ? 'ok' : 'bad');
+}
+pct.addEventListener('input', s8Update);
+HOOKS[8] = step => { stgs.forEach((s, i) => s.classList.toggle('lit', i < step)); if (step < 5) { pct.value = 5; s8Update(); } };
+s8Update();
+
+/* ---------- boot ---------- */
+const m = /^#ch(\d)$/.exec(location.hash);
+if (m && CH[+m[1]]) cur = CH[+m[1]].first;
+render(true);
+updatePlayBtn();
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
