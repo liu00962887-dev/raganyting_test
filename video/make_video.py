@@ -275,7 +275,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tts", choices=["edge", "azure", "none"], default="edge", help="语音来源（默认 edge）")
     ap.add_argument("--voice", default="zh-CN-YunxiNeural", help="语音名称（默认 云希 zh-CN-YunxiNeural）")
-    ap.add_argument("--rate", default="+0%", help="语速，如 +10%% 或 -5%%")
+    ap.add_argument("--rate", default="+0%", help="语速，如 --rate=+10%% 或 --rate=-5%%（需用等号连写）")
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--scale", type=float, default=1.5, help="1.5 → 1920×1080；1 → 1280×720")
     ap.add_argument("--out", default=str(HERE / "out" / "本体与知识图谱.mp4"))
